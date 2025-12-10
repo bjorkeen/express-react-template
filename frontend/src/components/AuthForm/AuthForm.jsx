@@ -1,13 +1,14 @@
 import React from "react";
+import styles from './AuthForm.module.css';
 
 const AuthForm = ({ form, onChange }) => (
-  <div className="auth-form-container">
+  <div className={styles.container}>
     <input
       name="username"
       placeholder="Username"
       value={form.username}
       onChange={onChange}
-      className="border p-2 rounded m-1"
+      className={styles.input}
     />
     <input
       name="password"
@@ -15,7 +16,7 @@ const AuthForm = ({ form, onChange }) => (
       placeholder="Password"
       value={form.password}
       onChange={onChange}
-      className="border p-2 rounded m-1"
+      className={styles.input}
     />
   </div>
 );

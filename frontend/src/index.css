@@ -1,142 +1,19 @@
+/* Imports */
+@import url('./styles/variables.css');
+@import url('./styles/layout.css');
+@import url('./styles/buttons.css');
+@import url('./styles/typography.css');
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: block;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: #242424;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.btn-blue {
-    background-color: #3b82f6; /* Μπλε 500 */
-    color: white;
-    /* Τα padding, rounded, κλπ. έρχονται από το βασικό στυλ 'button' */
-}
-.btn-green {
-    background-color: #22c55e; /* Πράσινο 500 */
-    color: white;
-}
-.btn-yellow {
-    background-color: #f59e0b; /* Κίτρινο 500 */
-    color: white;
-}
-.btn-purple {
-    background-color: #a855f7; /* Μωβ 500 */
-    color: white;
-}
-
-.auth-form-container {
-    display: flex;
-    flex-direction: column; /* Τα βάζουμε σε στήλη */
-    gap: 10px; /* Απόσταση μεταξύ των inputs */
-    margin-bottom: 20px; /* Απόσταση από τα κουμπιά */
-}
-.auth-input {
-    width: 100%; /* Πλήρες πλάτος */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    /* Μπορείτε να προσθέσετε χρώμα φόντου για dark mode αν χρειαστεί */
-    background-color: #333; 
-    color: white;
-}
-
-.page-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 80vh;
-  width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.panel {
-  background-color: #1a1a1a;
-  padding: 2.5rem;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-  border: 1px solid #333;
-}
-
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-  .panel {
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Πιο απαλή σκιά στο φως */
-  }
-  .panel h1 {
-    color: #111827;
-  }
-  .panel p {
-    color: #4b5563;
-  }
 }

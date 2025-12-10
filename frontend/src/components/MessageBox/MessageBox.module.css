@@ -1,0 +1,9 @@
+.box {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: var(--msg-bg);
+  border: 1px solid var(--msg-border);
+  color: var(--msg-text);
+  border-radius: 0.25rem;
+  text-align: center;
+}

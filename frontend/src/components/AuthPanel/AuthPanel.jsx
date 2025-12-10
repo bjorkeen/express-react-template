@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { register, login, logout, checkAccess, testApi } from '../services/authService';
-import { useAccess } from '../context/AccessContext';
-import AuthForm from './AuthForm';
-import MessageBox from './MessageBox';
+import { register, login, logout, checkAccess, testApi } from '../../services/authService';
+import { useAccess } from '../../context/AccessContext';
+import AuthForm from '../AuthForm/AuthForm';
+import MessageBox from '../MessageBox/MessageBox';
+import styles from './AuthPanel.module.css';
 
 const AuthPanel = () => {
   const { hasAccess, refreshAccess } = useAccess();
@@ -45,10 +46,10 @@ const AuthPanel = () => {
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full">
       <AuthForm form={form} onChange={handleChange} />
 
-      <div className="flex flex-wrap gap-2 mt-4 justify-center">
+      <div className={styles.actionsContainer}>
         <ActionButton onClick={() => handleAction('test')} label="Test API" className="btn-blue" />
         <ActionButton onClick={() => handleAction('register')} label="Register" className="btn-blue" />
         <ActionButton onClick={() => handleAction('login')} label="Login" className="btn-green" />
@@ -57,7 +58,7 @@ const AuthPanel = () => {
       </div>
 
       <MessageBox message={message} />
-      {hasAccess && <h4 className="mt-4 text-green-700 text-center">Privileged Content!</h4>}
+      {hasAccess && <h4 className={styles.privileged}>Privileged Content!</h4>}
     </div>
   );
 };

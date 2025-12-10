@@ -1,0 +1,27 @@
+:root {
+  /* Γενικά Χρώματα */
+  --color-bg: #242424;
+  --color-text: rgba(255, 255, 255, 0.87);
+  
+  /* Buttons */
+  --btn-blue: #3b82f6;
+  --btn-green: #22c55e;
+  --btn-yellow: #f59e0b;
+  --btn-purple: #a855f7;
+
+  /* Header */
+  --header-bg: #111827; /* Gray 900 */
+  --header-text: #ffffff;
+  
+  /* MessageBox */
+  --msg-bg: #f3f4f6;
+  --msg-border: #d1d5db;
+  --msg-text: #1f2937;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #ffffff;
+    --color-text: #213547;
+  }
+}

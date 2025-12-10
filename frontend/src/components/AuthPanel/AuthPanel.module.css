@@ -1,0 +1,19 @@
+.actionsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.message {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.privileged {
+  margin-top: 16px;
+  color: #15803d; /* green-700 */
+  text-align: center;
+  font-weight: bold;
+}
