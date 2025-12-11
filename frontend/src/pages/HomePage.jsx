@@ -3,13 +3,14 @@ import AuthPanel from '../components/AuthPanel';
 const HomePage = () => {
   return (
     <div className="page-container">
-      <div className="panel">
-        <h1>Secure Auth Boilerplate (React + Express)</h1>
-        <p className="text-gray-600 dark:text-gray-300">
-              Built with React + Express, styled with Tailwind.
-            </p>
-        <AuthPanel />
+      {/* Λογότυπο έξω από την κάρτα */}
+      <div className="logo-area">
+        <h1>Electronics R&R</h1>
+        <p>Returns & Repairs Management</p>
       </div>
+
+      {/* Η κάρτα εισόδου */}
+      <AuthPanel />
     </div>
   );
 };
