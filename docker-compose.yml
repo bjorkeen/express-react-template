@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend_service:
+    build: ./backend
+    container_name: my-app-backend
+    restart: always
+    environment:
+      - PORT=5050
+    networks:
+      - app-network
+
+  frontend_service:
+    build: ./frontend
+    container_name: my-app-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend_service
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
