@@ -1,33 +1,46 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import ProtectedPage from './pages/ProtectedPage';
+import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
-import PrivateRoute from './components/PrivateRoute';
-import { AccessProvider, useAccess } from './context/AccessContext';
 import AccessGate from './components/AccessGate';
+import PrivateRoute from './components/PrivateRoute';
+import HomePage from './pages/HomePage';
+import AuthPanel from './components/AuthPanel';
+import ProtectedPage from './pages/ProtectedPage';
 
-const App = () => (
-  <AccessProvider>
-    <Router>
-      <AccessGate>
-        <AppContent />
-      </AccessGate>
-    </Router>
-  </AccessProvider>
-);
+import CreateTicket from './pages/CreateTicket';
+import MyTickets from './pages/MyTickets';
 
-const AppContent = () => {
-  const { hasAccess } = useAccess();
-
+function App() {
   return (
     <>
-      <Header hasAccess={hasAccess} />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/protected" element={<PrivateRoute><ProtectedPage /></PrivateRoute>} />
-      </Routes>
+      <Header />
+      <AccessGate>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/auth" element={<AuthPanel />} />
+          
+          {/* Protected Routes */}
+          <Route path="/protected" element={
+            <PrivateRoute>
+              <ProtectedPage />
+            </PrivateRoute>
+          } />
+          
+          <Route path="/dashboard" element={
+            <PrivateRoute>
+              <MyTickets />
+            </PrivateRoute>
+          } />
+
+          <Route path="/create-ticket" element={
+            <PrivateRoute>
+              <CreateTicket />
+            </PrivateRoute>
+          } />
+          
+        </Routes>
+      </AccessGate>
     </>
   );
-};
+}
 
 export default App;

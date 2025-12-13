@@ -1,15 +1,39 @@
-const { body } = require('express-validator');
+const { body, validationResult } = require('express-validator');
 
-exports.registerValidation = [
-  body('username')
-    .isLength({ min: 3 })
-    .withMessage('Username must be at least 3 characters'),
+const validateRegistration = [
+  body('fullName')
+    .trim()
+    .notEmpty().withMessage('Full Name is required'),
+  
+  body('email')
+    .isEmail().withMessage('Please enter a valid email address')
+    .normalizeEmail(),
+
   body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters'),
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters long')
+    .matches(/\d/).withMessage('Password must contain a number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain a special symbol'),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // Επιστρέφουμε το πρώτο μήνυμα λάθους για να το δείξουμε στο UI
+      return res.status(400).json({ message: errors.array()[0].msg });
+    }
+    next();
+  }
 ];
 
-exports.loginValidation = [
-  body('username').notEmpty().withMessage('Username is required'),
-  body('password').notEmpty().withMessage('Password is required'),
+const validateLogin = [
+  body('email').isEmail().withMessage('Please enter a valid email'),
+  body('password').exists().withMessage('Password is required'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array()[0].msg });
+    }
+    next();
+  }
 ];
+
+module.exports = { validateRegistration, validateLogin };

@@ -141,6 +141,7 @@ Open [http://localhost:5173](http://localhost:5173)
 * Add role-based access control
 * Improve UI/UX with loading spinners and error states
 * Refactor routes and modularize APIs further
+* Add rule responsible for allocating tickets to repair centers when they reach repairs capacity
 
 ---
 

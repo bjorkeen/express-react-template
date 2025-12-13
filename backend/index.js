@@ -10,9 +10,11 @@ const mongoose = require('mongoose');
 // Routes
 const authRoutes = require('./routes/auth');
 const protectedRoutes = require('./routes/protected');
+const ticketRoutes = require('./routes/tickets');
 
 // App
 const app = express();
+
 
 // Middleware
 app.use(helmet());
@@ -39,10 +41,12 @@ app.get('/api/test', (req, res) => {
 // Auth Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // 🌐 DB Toggle Logic
 const PORT = process.env.PORT || 5050;
 const useMongo = process.env.USE_MONGO === 'true';
+
 
 if (useMongo) {
   mongoose.connect(process.env.MONGO_URI)

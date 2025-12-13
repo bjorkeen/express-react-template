@@ -1,18 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {
-  registerValidation,
-  loginValidation,
-} = require('../middleware/validate');
+const authController = require('../controllers/authController');
+const { validateRegistration, validateLogin } = require('../middleware/validate');
+const { requireAuth } = require('../middleware/authMiddleware');
 
-const {
-  register,
-  login,
-  logout,
-} = require('../controllers/authController');
-
-router.post('/register', registerValidation, register); // could have validation middleware
-router.post('/login', loginValidation, login); // could have validation middleware
-router.post('/logout', logout);
+router.post('/register', validateRegistration, authController.register);
+router.post('/login', validateLogin, authController.login);
+router.post('/logout', authController.logout);
+router.get('/me', requireAuth, authController.getMe);
 
 module.exports = router;

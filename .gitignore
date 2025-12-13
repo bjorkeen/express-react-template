@@ -17,3 +17,5 @@ backend/dist/
 # System files
 .DS_Store
 Thumbs.db
+tree.txt
+.github/copilot-instructions.md

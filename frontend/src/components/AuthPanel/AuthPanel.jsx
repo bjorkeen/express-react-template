@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAccess } from "../../context/AccessContext";
+import * as authService from "../../services/authService";
 import AuthForm from "../AuthForm";
 import MessageBox from "../MessageBox";
 import styles from "./AuthPanel.module.css";
@@ -13,20 +16,52 @@ const AuthPanel = () => {
   });
   const [message, setMessage] = useState("");
 
-  // Check if (Development environment) true (Vite specific)
+  // Hooks
+  const { login } = useAccess();
+  const navigate = useNavigate();
   const isDev = import.meta.env.DEV;
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async () => {
-    //  login() OR register() depending on mode
-    console.log(`Submitting ${mode} form:`, form);
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    console.log("1. Button Clicked! Mode:", mode);
+    setMessage("");
+    
+    try {
+      if (mode === "login") {
+        // Login Flow
+        console.log("2. Attempting Login...");
+        const user = await authService.login({
+          email: form.username,
+          password: form.password
+        });
+
+        await login(user);
+
+        navigate("/");
+      } else {
+        // Register Flow
+        console.log("2. Attempting Register...");
+        await authService.register({
+          fullName: form.fullName,
+          email: form.username,
+          password: form.password
+        });
+        
+        setMessage("Account created! Please sign in.");
+        setMode("login");
+        setForm(prev => ({ ...prev, password: "" }));
+      }
+    } catch (err) {
+      console.error("Auth Error:", err);
+      setMessage(err.response?.data?.message || err.message || "An error occurred");
+    }
   };
 
   return (
     <div className={styles.card}>
-      {/* Tabs Header (Sign In / Sign Up) */}
       <div className={styles.header}>
         <h2 className={styles.title}>Welcome</h2>
         <p className={styles.subtitle}>
@@ -55,7 +90,7 @@ const AuthPanel = () => {
 
       {/* Form */}
       <div className={styles.body}>
-        <AuthForm form={form} onChange={handleChange} mode={mode} />
+        <AuthForm form={form} onChange={handleChange} mode={mode} onSubmit={handleSubmit} />
         {/* Submit Button */}
         <button className={styles.submitButton} onClick={handleSubmit}>
           {mode === "login" ? "Sign In" : "Sign Up"}

@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { requireAuth } = require('../middleware/authMiddleware');
 
-// This assumes `authMiddleware` sets `req.user`
-router.get('/hasAccess', authMiddleware, (req, res) => {
-  res.json({ message: `Hello ${req.user.username}, you have access.` });
+router.get('/hasAccess', requireAuth, (req, res) => {
+  res.status(200).json({ 
+    success: true, 
+    message: 'You have access!', 
+    user: req.user 
+  });
 });
 
 module.exports = router;

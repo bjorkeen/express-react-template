@@ -1,62 +1,105 @@
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
-const userService = require('../services/userService');
+const bcrypt = require('bcrypt');
 
-exports.register = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
-  const { username, password } = req.body;
-
-  try {
-    const existingUser = await userService.findUser(username);
-    if (existingUser)
-      return res.status(400).json({ error: 'User already exists' });
-
-    await userService.createUser(username, password);
-    res.status(201).json({ message: 'User registered successfully' });
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
+const generateToken = (id, role) => {
+  return jwt.sign({ userId: id, role }, process.env.JWT_SECRET || 'secret_key', {
+    expiresIn: '1d',
+  });
 };
 
-exports.login = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty())
-    return res.status(400).json({ errors: errors.array() });
-
-  const { username, password } = req.body;
-
+exports.register = async (req, res) => {
   try {
-    const user = await userService.findUser(username);
-    if (!user)
-      return res.status(400).json({ error: 'Invalid credentials' });
+    const { fullName, email, password } = req.body;
 
-    const isMatch = await userService.comparePassword(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ error: 'Invalid credentials' });
+    
+    let existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
-    const token = jwt.sign(
-      { username },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+    
+    const user = await User.create({
+      fullName,
+      email,
+      password,
+      role: 'Customer'
+    });
+
+    const token = generateToken(user._id, user.role);
 
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 3600000,
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
     });
 
-    res.json({ message: 'Logged in successfully' });
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(201).json({
+      success: true,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error('Register Error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+};
+
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // pass check
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const token = generateToken(user._id, user.role);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+    console.error('Login Error:', error);
+    res.status(500).json({ message: 'Server error during login' });
   }
 };
 
 exports.logout = (req, res) => {
   res.clearCookie('token');
   res.json({ message: 'Logged out successfully' });
+};
+
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+    res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
