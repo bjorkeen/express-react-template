@@ -3,7 +3,7 @@ import React from 'react';
 // Αυτή είναι η σελίδα δοκιμών για τους Developers.
 // Κάντε import εδώ τα components σας για να τα τεστάρετε.
 
-import AppBar from "../components/AppBar";
+import Header from "../components/Header";
 
 export default function Playground() {
   return (
@@ -25,10 +25,10 @@ export default function Playground() {
       <div style={{ border: '2px dashed #ccc', padding: '20px', borderRadius: '8px' }}>
         <h3>Test Area</h3>
         
-        {/* Test AppBar */}
+        {/* Test Header */}
         <div style={{ border: '1px solid red', padding: '10px', margin: '10px 0' }}>
-          <p>AppBar should render here:</p>
-          <AppBar />
+          <p>Header should render here:</p>
+          <Header />
           {/* Routes are handled by the main app router */}
         </div>
         
