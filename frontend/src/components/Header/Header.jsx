@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useAccess } from '../../context/AccessContext';
 import styles from './Header.module.css';
+import logo from '../../assets/logo.png';
+
 
 const Header = () => {
   const { hasAccess, logout } = useAccess();
@@ -8,7 +10,16 @@ const Header = () => {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <Link to="/" className={styles.logo}>electronics</Link>
+        <div className={styles.logo}>
+        <img 
+            src={logo} 
+            alt="Electronics R&R" 
+            className={styles.logoImage}
+            />
+            <span>
+               Electronics <strong>R&amp;R</strong>
+            </span>
+        </div>
         
         <nav className={styles.nav}>
           <Link to="/" className={styles.link}>Home</Link>
