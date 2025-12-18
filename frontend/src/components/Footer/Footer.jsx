@@ -228,20 +228,18 @@ const Footer = () => {
                   can reach our support team using the details below.
                 </p>
 
-                <div className="contact-modal-details">
-                  <div className="contact-modal-line">
-                    <span className="contact-modal-label">Email</span>
-                    <span className="contact-modal-value">
-                      support@electronics-hub.com
-                    </span>
-                  </div>
-                  <div className="contact-modal-line">
-                    <span className="contact-modal-label">Hours</span>
-                    <span className="contact-modal-value">
-                      Mon–Fri, 09:00–17:00 EET
-                    </span>
-                  </div>
-                </div>
+                <div className="contact-box">
+  <div className="contact-box-inner">
+    <div className="contact-modal-line">
+      <span className="contact-modal-label">Email</span>
+      <span className="contact-modal-value">support@electronics-hub.com</span>
+    </div>
+    <div className="contact-modal-line">
+      <span className="contact-modal-label">Hours</span>
+      <span className="contact-modal-value">Mon–Fri, 09:00–17:00 EET</span>
+    </div>
+  </div>
+</div>
               </div>
             )}
 
