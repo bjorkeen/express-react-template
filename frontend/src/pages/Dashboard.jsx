@@ -1,6 +1,5 @@
 import { useAccess } from "../context/AccessContext";
 import MyTickets from './MyTickets';
-import StaffDashboard from './StaffDashboard';
 
 const Dashboard = () => {
     const {user} = useAccess();
@@ -13,10 +12,9 @@ const Dashboard = () => {
     if (user.role === 'Customer'){
         return <MyTickets/>;
     }
-    
-    //staff case
-    if (user.role === 'Staff'){
-        return <StaffDashboard />;
+    //staff case 
+    if (user.role === 'Employee' || user.role === 'Technician'){
+         return <div>Staff Dashboard (Under Construction)</div>;
     }
 
     //manager case

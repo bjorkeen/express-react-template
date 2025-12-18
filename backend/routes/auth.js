@@ -9,66 +9,31 @@ router.post('/login', validateLogin, authController.login);
 router.post('/logout', authController.logout);
 router.get('/me', requireAuth, authController.getMe);
 
-router.get('/seed-users', async(req, res) => {
+router.get('/seed-users', async (req, res) => {
     const User = require('../models/User');
-    const bcrypt = require('bcrypt');
+    
+    const seedUsers = [
+        { fullName: "Michael Scott", email: "manager@demo.com", password: "demo123!", role: "Manager" },
+        { fullName: "Bob Builder", email: "tech@demo.com", password: "demo123!", role: "Technician" },
+        { fullName: "John Employee", email: "staff@demo.com", password: "demo123!", role: "Employee" },
+        { fullName: "Karen Karenopoulou", email: "customer@demo.com", password: "demo123!", role: "Customer" }
+    ];
 
-    try{
-        await User.deleteMany({});
-        console.log('Old Users deleted succesfully.');
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('demo123!', salt);
-
-        const users = [
-            {
-            fullName : "Michael Scott",
-            email: "manager@demo.com",
-            password: hashedPassword,
-            role: "Manager"
-            }, 
-            
-            {
-            fullName: "Bob Builder",
-            email: "tech@demo.com",
-            password: hashedPassword,
-            role: "Technician"
-            },
-
-            {
-            fullName: "John Employee",
-            email: "staff@demo.com",
-            password: hashedPassword,
-            role: "Employee"
-            },
-
-            {
-            fullName: "Karen Karenopoulou",
-            email: "customer@demo.com",
-            password: hashedPassword,
-            role: "Customer"
-            }        
-          ];
-
-          await User.insertMany(users);
-          console.log('New users created succesfully!');
-
-          res.send(`
-            <h1> Seeding Succesfull.</h1>
-            <p> Users created: </p>
-            <ul> 
-            <li>Manager: manager@demo.com / demo123!</li>
-            <li>Employee: staff@demo.com / demo123!</li>
-            <li>Technician: tech@demo.com / demo123! </li>
-            <li>Customer: customer@demo.com / demo123!</li>
-            </ul>
-            `);
+    try {
+        let report = [];
+        for (const user of seedUsers) {
+            const exists = await User.findOne({ email: user.email });
+            if (!exists) {
+                await User.create(user); // Password hashing happens in Model
+                report.push(`Created: ${user.email}`);
+            } else {
+                report.push(`Skipped: ${user.email}`);
+            }
+        }
+        res.send(`<pre>${report.join('\n')}</pre>`);
+    } catch (error) {
+        res.status(500).send(error.message);
     }
-
-    catch (error){
-        console.error(error);
-        res.status(500).send('Error during seeding proccess: ' + error.message);
-    }
-})
+});
 
 module.exports = router;
