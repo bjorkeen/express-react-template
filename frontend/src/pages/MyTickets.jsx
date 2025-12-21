@@ -147,7 +147,7 @@ export default function MyTickets() {
   return (
     <div className="mt-page">
       <div className="mt-container">
-        <h1 className="mt-title">My Tickets</h1>
+        <h1 className="mt-title">My Requests</h1>
         <p className="mt-subtitle">View and track all your repair and return requests</p>
 
         {/* Filters Card */}
