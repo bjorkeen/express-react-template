@@ -84,7 +84,6 @@ export default function CreateTicket() {
     try {
       setSubmitting(true);
 
-      // ✅ IMPORTANT: send FLAT payload (matches backend controller)
       const payload = {
         serialNumber: formData.serialNumber.trim(),
         model: formData.model.trim(),
@@ -93,7 +92,6 @@ export default function CreateTicket() {
         category: formData.category,
         description: formData.description.trim(),
         photos: photoFiles.map((f) => f.name), // backend expects "photos"
-        // invoice not used in backend yet → we keep it local for now
       };
 
       await createTicket(payload);
