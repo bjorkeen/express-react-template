@@ -1,79 +1,269 @@
-import { useEffect, useState } from 'react';
-import { getMyTickets } from '../services/ticketService';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+import "./MyTickets.css";
+
+import { getMyTickets } from "../services/ticketService";
+
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "-";
+  return d.toLocaleString();
+}
+
+function normalizeStatus(raw) {
+  if (!raw) return "Unknown";
+  const s = String(raw).toLowerCase();
+
+  if (s.includes("new") || s.includes("submitted")) return "Submitted";
+  if (s.includes("progress")) return "In Progress";
+  if (s.includes("complete") || s.includes("resolved")) return "Completed";
+  if (s.includes("cancel") || s.includes("reject")) return "Cancelled";
+
+  return String(raw).charAt(0).toUpperCase() + String(raw).slice(1);
+}
+
+function statusClass(statusLabel) {
+  const s = statusLabel.toLowerCase();
+  if (s.includes("progress")) return "status-pill status-blue";
+  if (s.includes("complete")) return "status-pill status-green";
+  if (s.includes("cancel")) return "status-pill status-gray";
+  if (s.includes("submit")) return "status-pill status-blue";
+  return "status-pill status-blue";
+}
+
+function getTicketId(t) {
+  return t.ticketId || t.ticketNumber || t._id || "-";
+}
+
+function getModel(t) {
+  return t.model || t.product?.model || "-";
+}
+
+function getSerial(t) {
+  return t.serialNumber || t.product?.serialNumber || "-";
+}
+
+function getIssue(t) {
+  return t.category || t.issue?.category || "-";
+}
+
+function getLastUpdate(t) {
+  return t.updatedAt || t.lastUpdatedAt || t.createdAt || null;
+}
+
 
 export default function MyTickets() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
-    const fetchTickets = async () => {
+    let alive = true;
+
+    const load = async () => {
       try {
+        setLoading(true);
+        setErrorMsg("");
+
         const data = await getMyTickets();
-        setTickets(data);
-      } catch (error) {
-        console.error(error);
+
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.tickets)
+          ? data.tickets
+          : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+        if (alive) setTickets(list);
+      // eslint-disable-next-line no-unused-vars
+      } catch (err) {
+        if (alive) {
+          setTickets([]);
+          setErrorMsg("Failed to load tickets.");
+        }
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
-    fetchTickets();
+
+    load();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  if (loading) return <div className="text-center mt-10">Loading tickets...</div>;
+  const availableStatuses = useMemo(() => {
+    const set = new Set(tickets.map((t) => normalizeStatus(t.status || t.state)));
+    return ["All", ...Array.from(set)];
+  }, [tickets]);
+
+  const filteredTickets = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    const from = dateFrom ? new Date(dateFrom) : null;
+    const to = dateTo ? new Date(dateTo) : null;
+    if (to) to.setHours(23, 59, 59, 999); 
+
+    return tickets.filter((t) => {
+      const id = getTicketId(t);
+      const serial = getSerial(t);
+      const model = getModel(t);
+
+      // search
+      if (q) {
+        const hay = `${id} ${serial} ${model}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+
+      // status
+      const statusLabel = normalizeStatus(t.status || t.state);
+      if (statusFilter !== "All" && statusLabel !== statusFilter) return false;
+
+      // date range
+      if (from || to) {
+        const d = getLastUpdate(t) ? new Date(getLastUpdate(t)) : null;
+        if (!d || Number.isNaN(d.getTime())) return false;
+        if (from && d < from) return false;
+        if (to && d > to) return false;
+      }
+
+      return true;
+    });
+  }, [tickets, query, statusFilter, dateFrom, dateTo]);
+
+  const onViewDetails = (ticket) => {
+    const id = getTicketId(ticket);
+    alert(`Ticket details page not implemented yet.\nTicket: ${id}`);
+  };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">My Tickets</h1>
-        <Link to="/create-ticket" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-          + New Request
-        </Link>
-      </div>
+    <div className="mt-page">
+      <div className="mt-container">
+        <h1 className="mt-title">My Tickets</h1>
+        <p className="mt-subtitle">View and track all your repair and return requests</p>
 
-      <div className="bg-white shadow overflow-hidden rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warranty</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Repair Center</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {tickets.map((ticket) => (
-              <tr key={ticket._id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                  {ticket.ticketId}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {ticket.product.model}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${ticket.status === 'Submitted' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                    {ticket.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {ticket.warrantyStatus}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {ticket.assignedRepairCenter || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(ticket.createdAt).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {tickets.length === 0 && (
-          <div className="p-6 text-center text-gray-500">No tickets found. Create one!</div>
-        )}
+        {/* Filters Card */}
+        <div className="mt-filters">
+          <div className="mt-filter">
+            <label className="mt-label">Search</label>
+            <div className="mt-inputwrap">
+              <span className="mt-icon">🔍</span>
+              <input
+                className="mt-input"
+                placeholder="Ticket ID or Serial Number"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="mt-filter">
+            <label className="mt-label">Status</label>
+            <select
+              className="mt-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              {availableStatuses.map((s) => (
+                <option key={s} value={s}>
+                  {s === "All" ? "All Statuses" : s}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mt-filter">
+            <label className="mt-label">Date Range</label>
+            <div className="mt-daterow">
+              <input
+                className="mt-input"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
+              <input
+                className="mt-input"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Table Card */}
+        <div className="mt-tablecard">
+          {loading && <div className="mt-state">Loading tickets…</div>}
+
+          {!loading && errorMsg && (
+            <div className="mt-state mt-error">{errorMsg}</div>
+          )}
+
+          {!loading && !errorMsg && filteredTickets.length === 0 && (
+            <div className="mt-state">No tickets found.</div>
+          )}
+
+          {!loading && !errorMsg && filteredTickets.length > 0 && (
+            <table className="mt-table">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Product</th>
+                  <th>Issue</th>
+                  <th>Status</th>
+                  <th>Last Update</th>
+                  <th className="mt-actions-col">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredTickets.map((t) => {
+                  const id = getTicketId(t);
+                  const model = getModel(t);
+                  const serial = getSerial(t);
+                  const issue = getIssue(t);
+                  const statusLabel = normalizeStatus(t.status || t.state);
+                  const last = getLastUpdate(t);
+
+                  return (
+                    <tr key={id}>
+                      <td className="mt-mono">{id}</td>
+
+                      <td>
+                        <div className="mt-product">
+                          <div className="mt-product-model">{model}</div>
+                          <div className="mt-product-serial">{serial}</div>
+                        </div>
+                      </td>
+
+                      <td>{issue}</td>
+
+                      <td>
+                        <span className={statusClass(statusLabel)}>{statusLabel}</span>
+                      </td>
+
+                      <td className="mt-datetime">{formatDateTime(last)}</td>
+
+                      <td className="mt-actions-col">
+                        <button className="mt-link" onClick={() => onViewDetails(t)}>
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );

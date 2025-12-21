@@ -1,6 +1,6 @@
 import api from './api';
 
-// New Ticket Creation
+// Create Ticket
 export const createTicket = async (ticketData) => {
   try {
     const response = await api.post('/tickets', ticketData);
@@ -10,11 +10,16 @@ export const createTicket = async (ticketData) => {
   }
 };
 
-// Get User's Tickets
+// Get logged-in user's tickets
 export const getMyTickets = async () => {
   try {
     const response = await api.get('/tickets');
-    return response.data;
+
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.tickets)) return data.tickets;
+
+    return [];
   } catch (error) {
     throw error.response?.data?.message || 'Failed to fetch tickets';
   }
