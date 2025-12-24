@@ -3,7 +3,8 @@ import React from 'react';
 // Αυτή είναι η σελίδα δοκιμών για τους Developers.
 // Κάντε import εδώ τα components σας για να τα τεστάρετε.
 
-import Header from "../components/Header";
+import Header from "@/components/Layout/Header/Header";
+
 
 export default function Playground() {
   return (
