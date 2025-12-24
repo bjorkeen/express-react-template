@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import "./MyTickets.css";
+import "./CustomerDashboard.css";
 
-import { getMyTickets } from "../services/ticketService";
+import { getMyTickets } from "@/services/ticketService";
 
 
 function formatDateTime(value) {

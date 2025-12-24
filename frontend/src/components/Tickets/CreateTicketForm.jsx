@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createTicket } from "../services/ticketService";
-import "./CreateTicket.css";
+import { createTicket } from "@/services/ticketService";
+import  "./CreateTicketForm.css";
 
 const PRODUCT_TYPES = ["Smartphone", "Laptop", "TV", "Other"];
 
