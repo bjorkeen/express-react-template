@@ -1,13 +1,30 @@
 import api from './api';
 
-// Create Ticket
+//create ticket
 export const createTicket = async (ticketData) => {
-  try {
-    const response = await api.post('/tickets', ticketData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to create ticket';
-  }
+
+  console.log('Frontend TicketData Photos:', ticketData.photos);
+
+  const formData = new FormData();
+  
+  Object.keys(ticketData).forEach(key => {
+    if (key === 'photos' && Array.isArray(ticketData.photos)) {
+      ticketData.photos.forEach(file => {
+        formData.append('photos', file); 
+      });
+    } else {
+      formData.append(key, ticketData[key]);
+    }
+  });
+
+  const config = {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  };
+
+  const response = await api.post('/tickets', formData, config);
+  return response.data;
 };
 
 // Get logged-in user's tickets

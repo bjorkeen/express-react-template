@@ -84,14 +84,15 @@ export default function CreateTicket() {
     try {
       setSubmitting(true);
 
+      // ΦΤΙΑΧΝΟΥΜΕ ΤΟ ΠΑΚΕΤΟ ΔΕΔΟΜΕΝΩΝ ΣΩΣΤΑ
       const payload = {
         serialNumber: formData.serialNumber.trim(),
         model: formData.model.trim(),
-        purchaseDate: formData.purchaseDate, // ISO date string is OK
+        purchaseDate: formData.purchaseDate,
         type: formData.type,
         category: formData.category,
         description: formData.description.trim(),
-        photos: photoFiles.map((f) => f.name), // backend expects "photos"
+        photos: photoFiles, // <--- ΔΙΟΡΘΩΣΗ: Στέλνουμε ΟΛΟ το αρχείο, όχι το .map((f) => f.name)
       };
 
       await createTicket(payload);
@@ -276,10 +277,39 @@ export default function CreateTicket() {
               </label>
 
               {photoFiles.length > 0 && (
-                <p className="ct-file-selected">
-                  Selected photos:{" "}
-                  <strong>{photoFiles.map((f) => f.name).join(", ")}</strong>
-                </p>
+                <div style={{ 
+                  marginTop: '15px', 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', 
+                  gap: '12px' 
+                }}>
+                  {photoFiles.map((file, index) => (
+                    <div key={index} style={{ position: 'relative', textAlign: 'center' }}>
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        style={{
+                          width: '100%',
+                          height: '100px',
+                          objectFit: 'cover',
+                          borderRadius: '8px',
+                          border: '1px solid #ccc',
+                          display: 'block'
+                        }}
+                      />
+                      <span style={{ 
+                        display: 'block', 
+                        fontSize: '10px', 
+                        marginTop: '4px', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        whiteSpace: 'nowrap' 
+                      }}>
+                        {file.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

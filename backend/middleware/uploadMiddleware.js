@@ -3,10 +3,8 @@ const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 
-
 //ensure folder exist before uploading inside
 //fallback for local exec inside Docker
-
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)){
     fs.mkdirSync(uploadDir, {
@@ -31,9 +29,13 @@ const upload = multer({
 
 //image proccessing middleware ( compress/resize )
 const resizeImage = async (req, res, next) => {
+    console.log('--- DEBUG: Files in Middleware ---', req.files);
+    
+    // Check if files exist
     if(!req.files || req.files.length === 0)
         return next();
     
+    // Initialize the array so we can push paths into it
     req.body.attachments = [];
 
     try{
@@ -49,12 +51,15 @@ const resizeImage = async (req, res, next) => {
                     .toFormat('jpeg')
                     .jpeg({quality: 75}) //75% quality of original image
                     .toFile(outputPath);
-                req.body.attachments.push(`uploads/${filename}`); //relative path attached to body so Mongo can save it
-                })
-            );
-            next();
-        } catch(error){
-            res.status(500).json({message: 'Error proccessing images', error: error.message});
+                
+                //relative path attached to body so Mongo can save it
+                req.body.attachments.push(`uploads/${filename}`); 
+            })
+        );
+        next();
+    } catch(error){
+        console.error('Resize Error:', error);
+        res.status(500).json({message: 'Error proccessing images', error: error.message});
     }
 }
 

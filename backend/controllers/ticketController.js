@@ -76,12 +76,10 @@ exports.createTicket = async (req, res) => {
       issue: {
         category,
         description,
-        photos: filePaths,  //fill old legacy field to avoid crash/conflicts with frontend
+        attachments: filePaths,  //fill old legacy field to avoid crash/conflicts with frontend
       },
 
-      attachments : filePaths,  //fill new schema fields
-
-
+  
       //  Results
       warrantyStatus,
       assignedRepairCenter: assignedTech ? assignedTech._id : null,
