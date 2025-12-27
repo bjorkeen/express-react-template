@@ -1,69 +1,49 @@
 import api from './api';
 
-// Create Ticket
+// --- CUSTOMER FUNCTIONS ---
+
+// Create Ticket with FormData (Supports Images)
 export const createTicket = async (ticketData) => {
-  try {
-    const response = await api.post('/tickets', ticketData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to create ticket';
-  }
+  const formData = new FormData();
+  
+  Object.keys(ticketData).forEach(key => {
+    if (key === 'photos' && Array.isArray(ticketData.photos)) {
+      ticketData.photos.forEach(file => {
+        formData.append('photos', file); 
+      });
+    } else {
+      formData.append(key, ticketData[key]);
+    }
+  });
+
+  const response = await api.post('/tickets', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
 };
 
 // Get logged-in user's tickets
 export const getMyTickets = async () => {
-  try {
-    const response = await api.get('/tickets');
-
-    const data = response.data;
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data?.tickets)) return data.tickets;
-
-    return [];
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to fetch tickets';
-  }
+  const response = await api.get('/tickets');
+  return response.data;
 };
 
-// Get tickets assigned to the logged-in technician
+// --- FIX HERE: RENAMED TO getTicket TO MATCH YOUR FRONTEND ---
+export const getTicket = async (id) => {
+  const response = await api.get(`/tickets/${id}`);
+  return response.data;
+};
+
+// --- TECHNICIAN FUNCTIONS ---
+
 export const getAssignedTickets = async () => {
   const response = await api.get('/tickets/assigned');
   return response.data;
 };
 
-// Update ticket status
-export const updateTicketStatus = async (ticketId, status) => {
-  const response = await fetch(`/api/tickets/${ticketId}/status`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', 
-    body: JSON.stringify({ status }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to update status');
-  }
-
-  return response.json();
-};
-
-
-// ...
-export const getTicket = async (id) => {
-  const token = localStorage.getItem('token');
-  
-  const response = await fetch(`/api/tickets/${id}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch ticket');
-  }
-  return response.json();
+export const updateTicketStatus = async (id, status) => {
+  const response = await api.patch(`/tickets/${id}/status`, { status });
+  return response.data;
 };

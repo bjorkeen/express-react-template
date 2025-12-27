@@ -3,18 +3,23 @@ const router = express.Router();
 const ticketController = require('../controllers/ticketController');
 const { requireAuth } = require('../middleware/authMiddleware');
 
+// IMPORT YOUR UPLOAD MIDDLEWARE
+const { upload, resizeImage } = require('../middleware/uploadMiddleware');
+
 // POST /api/tickets - Create new ticket (Protected)
-router.post('/', requireAuth, ticketController.createTicket);
+// RESTORE THE UPLOAD CHAIN: Auth -> Upload -> Resize -> Controller
+router.post('/', requireAuth, upload.array('photos', 5), resizeImage, ticketController.createTicket);
 
 // GET /api/tickets - Get user's ticket (Protected)
 router.get('/', requireAuth, ticketController.getMyTickets);
 
-// GET /api/tickets/assigned - Get assigned tickets (Protected)
+// GET /api/tickets/assigned - Get technician's tickets
 router.get('/assigned', requireAuth, ticketController.getAssignedTickets);
 
-// PUT /api/tickets/:id/status - Update ticket status (Technician only)
-router.put('/:id/status', requireAuth, ticketController.updateTicketStatus);
-
-// GET /api/tickets/:id - Get Single Ticket
+// GET /api/tickets/:id - Get single ticket details
 router.get('/:id', requireAuth, ticketController.getTicketById);
+
+// PATCH /api/tickets/:id/status - Update status (Technician only)
+router.patch('/:id/status', requireAuth, ticketController.updateTicketStatus);
+
 module.exports = router;
