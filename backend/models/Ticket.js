@@ -1,21 +1,30 @@
-
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
-  // Link ticket to the customer
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
   
-  // Ticket Identification
   ticketId: {
     type: String,
     unique: true,
   },
 
-  // Product Details 
+  //filippa service type logic
+  serviceType: {
+    type: String,
+    enum: ['Repair', 'Return'],
+    default: 'Repair'
+  },
+
+  //filippa contact details
+  contactInfo: {
+    fullName: { type: String },
+    email: { type: String }
+  },
+
   product: {
     serialNumber: { type: String, required: true },
     model: { type: String, required: true }, 
@@ -27,33 +36,29 @@ const ticketSchema = new mongoose.Schema({
     }
   },
 
-  // Issue Details
   issue: {
     category: { type: String, required: true },
     description: { type: String, required: true },
-    attachments: [{ type : String }], //changed to attachments (C.B.)
+    
+    //christos attachments array definition
+    attachments: [{ type: String }], 
+    
     invoice: { type: String }
   },
 
-  // Status Tracking 
   status: {
     type: String,
     enum: [
-      'Submitted', 
-      'Pending Validation',
-      'In Progress',
-      'Waiting for Parts',
-      'Completed',
-      'Closed',
-      'Cancelled'
+      'Submitted', 'Pending Validation', 'In Progress',
+      'Waiting for Parts', 'Completed', 'Closed', 'Cancelled'
     ],
     default: 'Submitted'
   },
 
-  // Automation Results
+  //filippa extended warranty status enums
   warrantyStatus: {
     type: String,
-    enum: ['Under Warranty', 'Out of Warranty', 'Manual Review'],
+    enum: ['Under Warranty', 'Out of Warranty', 'Manual Review', 'Eligible for Return', 'Return Period Expired'],
     default: 'Manual Review'
   },
   
@@ -63,7 +68,6 @@ const ticketSchema = new mongoose.Schema({
     default: null
   },
 
-  // Audit Log / History
   history: [{
     action: String,
     by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -71,17 +75,10 @@ const ticketSchema = new mongoose.Schema({
     notes: String
   }],
 
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
-// Update timestamp automatically
 ticketSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
