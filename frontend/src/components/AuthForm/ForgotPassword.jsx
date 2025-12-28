@@ -8,42 +8,41 @@ const ForgotPassword = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Sending reset link to:", email);
-    alert("If an account exists for " + email + ", a reset link has been sent.");
-    navigate('/'); // Τον γυρνάμε στην αρχική
+    alert("Instructions have been sent to: " + email);
+    navigate('/'); 
   };
 
   return (
-    <div className={styles.container}>
-      <h2>Reset Password</h2>
-      <p style={{ fontSize: '0.9rem', color: '#666' }}>
-        Enter your email address and we'll send you a link to reset your password.
-      </p>
-      
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={styles.input}
-          required
-        />
+    
+    <div className={styles.pageWrapper}> 
+      <div className={styles.authCard}>
+        <h2 className={styles.title}>Reset Password</h2>
+        <p className={styles.subtitle}>
+          Enter your email address and we'll send you a link to reset your password.
+        </p>
+
+        <form onSubmit={handleSubmit} className={styles.container}>
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={styles.input} 
+            required
+          />
+          
+          <button type="submit" className={styles.submitButton}>
+            Send Reset Link
+          </button>
+        </form>
+
         <button 
-          type="submit" 
-          className={styles.authButton} 
-          style={{ marginTop: '20px', width: '100%', display: 'block' }}
+          onClick={() => navigate('/')} 
+          className={styles.backButton}
         >
-          Send Reset Link
+          ← Back to Login
         </button>
-      </form>
-      
-      <button 
-        onClick={() => navigate('/')} 
-        style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginTop: '15px' }}
-      >
-        ← Back to Login
-      </button>
+      </div>
     </div>
   );
 };
