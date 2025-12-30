@@ -1,14 +1,17 @@
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAccess } from '@/context/AccessContext';
 import logo from '@/assets/logo.png';
 import styles from './Header.module.css';
 
 const Header = () => {
-  const { hasAccess, logout } = useAccess();
+  const { hasAccess, logout, user } = useAccess(); 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); 
   const navigate = useNavigate();
-  const location = useLocation(); // Χρειαζόμαστε αυτό για να ξέρουμε σε ποιο URL είμαστε
+  const location = useLocation();
 
   const handleLogout = async () => {
+    setIsDropdownOpen(false);
     await logout();
     navigate("/");
   };
@@ -26,11 +29,6 @@ const Header = () => {
 
         {/* ΔΕΞΙΑ: Το Μενού */}
         <nav className={styles.nav}>
-          {/* Εμφάνιση μενού ΜΟΝΟ αν:
-              1. Ο χρήστης έχει πρόσβαση (hasAccess)
-              2. ΔΕΝ είναι στην αρχική 
-              3. ΔΕΝ είναι στο forgot password 
-          */}
           {hasAccess && 
            location.pathname !== "/" && 
            location.pathname !== "/forgot-password" ? (
@@ -44,9 +42,63 @@ const Header = () => {
               <Link to="/create-ticket" className={styles.link}>
                 + New Request
               </Link>
+
+              {/* 1. SIGN OUT ΠΡΙΝ ΤΟ ΠΡΟΦΙΛ */}
               <button onClick={handleLogout} className={styles.authButton}>
                 Sign Out
               </button>
+
+              {/* 2. PROFILE DROPDOWN ΣΤΟ ΤΕΛΟΣ ΔΕΞΙΑ */}
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <button 
+                  className={styles.link} 
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  👤
+                </button>
+
+                {isDropdownOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: '0',
+                    backgroundColor: 'white',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    width: '200px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    zIndex: 1000,
+                    textAlign: 'left',
+                    marginTop: '10px'
+                  }}>
+                    <div style={{ color: '#333', fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>
+                       {user?.fullName || 'User Profile'}
+                    </div>
+                    <div style={{ color: '#666', fontSize: '12px', marginBottom: '10px', wordBreak: 'break-all' }}>
+                       {user?.email || 'user@example.com'}
+                    </div>
+                    <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '8px 0' }} />
+                    
+                    <button 
+                      onClick={() => { setIsDropdownOpen(false); navigate('/dashboard'); }}
+                      style={{ 
+                        width: '100%', 
+                        textAlign: 'left', 
+                        background: 'none', 
+                        border: 'none', 
+                        color: '#2563eb', 
+                        cursor: 'pointer',
+                        padding: '4px 0',
+                        fontSize: '13px'
+                      }}
+                    >
+                      ⚙️ Account Settings
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           ) : null}
         </nav>

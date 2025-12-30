@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CustomerDashboard.css";
 import { getMyTickets } from "@/services/ticketService";
+import WelcomeMessage from "./WelcomeMessage";
 
 // Helper Functions
 function formatDateTime(value) {
@@ -167,6 +168,7 @@ export default function CustomerDashboard() {
 
   return (
     <div className="mt-page">
+      <WelcomeMessage />
       <div className="mt-container">
         <h1 className="mt-title">My Requests</h1>
         <p className="mt-subtitle">
