@@ -84,3 +84,22 @@
   background-color: #81c7e75e;
   border-color: #666;
 }
+
+.profileBtn {
+  background: none;
+  border: none;
+  color: white; /* Ή το χρώμα που έχουν τα links σου */
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  transition: opacity 0.2s;
+}
+
+.profileBtn:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
