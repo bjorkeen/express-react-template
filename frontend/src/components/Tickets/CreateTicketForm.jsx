@@ -57,6 +57,17 @@ export default function CreateTicket() {
     description: "",
   });
 
+  //filippa Pre-fill user data if available
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        contactName: user.fullName || user.name || prev.contactName, 
+        contactEmail: user.email || prev.contactEmail
+      }));
+    }
+  }, [user]);
+
   const [warrantyCheck, setWarrantyCheck] = useState(null);
   const [invoiceFile, setInvoiceFile] = useState(null);
   
