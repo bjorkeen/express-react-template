@@ -30,6 +30,17 @@ export const getMyTickets = async () => {
   return response.data;
 };
 
+// despoina service call for staff
+export const getAllTickets = async () => {
+  try {
+    const response = await api.get('/tickets/all');
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all tickets:", error);
+    throw error;
+  }
+};
+
 // --- FIX HERE: RENAMED TO getTicket TO MATCH YOUR FRONTEND ---
 export const getTicket = async (id) => {
   const response = await api.get(`/tickets/${id}`);
