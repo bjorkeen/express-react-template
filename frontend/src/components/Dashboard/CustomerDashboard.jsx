@@ -1,16 +1,50 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyTickets } from "@/services/ticketService";
+import { getMyTickets, getTicket } from "@/services/ticketService";
 import { useAccess } from "@/context/AccessContext"; 
 import "./CustomerDashboard.css";
 import WelcomeMessage from "./WelcomeMessage";
 
+// HELPER FUNCTIONS 
+function formatDateTime(value) {
+  if (!value) return "-";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString();
+}
+
+function normalizeStatus(raw) {
+  if (!raw) return "Unknown";
+  const s = String(raw).toLowerCase();
+  if (s.includes("new") || s.includes("submitted")) return "Submitted";
+  if (s.includes("progress")) return "In Progress";
+  if (s.includes("complete") || s.includes("resolved")) return "Completed";
+  if (s.includes("cancel") || s.includes("reject")) return "Cancelled";
+  if (s.includes("validation")) return "Pending Validation";
+  if (s.includes("parts")) return "Waiting for Parts";
+  return String(raw).charAt(0).toUpperCase() + String(raw).slice(1);
+}
+
+const statusClass = (statusLabel) => {
+  const s = statusLabel.toLowerCase().replace(/ /g, '-');
+  return `td-status-badge badge-${s}`;
+};
+
+function getTicketId(t) { return t.ticketId || t.ticketNumber || t._id || "-"; }
+function getModel(t) { return t.model || t.product?.model || "-"; }
+function getSerial(t) { return t.serialNumber || t.product?.serialNumber || "-"; }
+function getIssue(t) { return t.category || t.issue?.category || "-"; }
+function getServiceType(t) { return t.serviceType || t.type || "Repair"; }
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
   const { user } = useAccess();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal State
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -29,7 +63,33 @@ export default function CustomerDashboard() {
     load();
   }, []);
 
-  // STATS 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    document.body.style.overflow = showModal ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showModal]);
+
+  const onViewDetails = async (t) => {
+    setSelectedTicket(t);
+    setShowModal(true);
+    setModalLoading(true);
+
+    try {
+      const idToFetch = t._id || t.id;
+      if (idToFetch) {
+        const fullData = await getTicket(idToFetch);
+        setSelectedTicket(prev => ({ ...prev, ...fullData }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch full details", err);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const closeModal = () => { setShowModal(false); setSelectedTicket(null); };
+
+  // STATS Calculation
   const stats = useMemo(() => {
     const total = tickets.length;
     const active = tickets.filter(t => {
@@ -61,9 +121,7 @@ export default function CustomerDashboard() {
 
       {/* HEADER */}
       <div className="dash-header">
-        <div>
-            <h1 className="dash-title">Overview</h1>
-        </div>
+        <h1 className="dash-title">Overview</h1>
         <button className="new-ticket-btn" onClick={() => navigate('/create-ticket')}>
             + New Request
         </button>
@@ -90,7 +148,7 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      {/* 3. TABLE SECTION (BELOW CARDS) */}
+      {/*TABLE SECTION (BELOW CARDS) */}
       <div className="dash-table-container">
         <div className="dash-section-header">
             <h3>Recent Tickets</h3>
@@ -118,30 +176,24 @@ export default function CustomerDashboard() {
               </tr>
             </thead>
             <tbody>
-              {tickets.slice(0, 8).map((t) => ( // Δείχνουμε τα 8 τελευταία εδώ
-                <tr key={t._id || t.ticketId}>
-                  <td className="font-mono">
-                    {t.ticketId || t.ticketNumber || (t._id ? t._id.substring(0,8) : "-")}
-                  </td>
-                  <td style={{fontWeight:600}}>
-                    {t.product?.model || t.model || "Unknown Product"}
-                  </td>
-                  <td style={{maxWidth:'200px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color:'#6b7280'}}>
-                     {t.issueDescription || "No description"}
+              {tickets.slice(0, 8).map((t) => (
+                <tr key={getTicketId(t)}>
+                  <td className="font-mono">{getTicketId(t)}</td>
+                  <td style={{fontWeight:600}}>{getModel(t)}</td>
+                  <td>
+                    {getIssue(t)}
                   </td>
                   <td>
-                    <span className={getStatusBadgeClass(t.status || t.state)}>
-                      {t.status || t.state || "Unknown"}
+                    <span className={statusClass(normalizeStatus(t.status || t.state))}>
+                      {normalizeStatus(t.status || t.state)}
                     </span>
                   </td>
                   <td style={{color:'#6b7280', fontSize:'0.9rem'}}>
                     {new Date(t.createdAt).toLocaleDateString()}
                   </td>
                   <td>
-                    <button 
-                        className="action-btn"
-                        onClick={() => navigate(`/tickets/${t._id || t.ticketId}`)}
-                    >
+                    {/* View Button now triggers Modal */}
+                    <button className="action-btn" onClick={() => onViewDetails(t)}>
                         View
                     </button>
                   </td>
@@ -152,6 +204,159 @@ export default function CustomerDashboard() {
         )}
       </div>
 
-    </div>
+      {/* MODAL*/}
+        {showModal && selectedTicket && (
+          <div className="modal-overlay" onClick={closeModal}>
+            <div className="modal-box modal-box-large" onClick={(e) => e.stopPropagation()}>
+              
+              <div className="td-header">
+                <div className="td-title">
+                  <h1>{getServiceType(selectedTicket) === 'Return' ? 'Return Request' : 'Repair Request'}</h1>
+                  <div className="td-id">ID: {getTicketId(selectedTicket)}</div>
+                </div>
+                <div className="td-header-actions">
+                  <div className={statusClass(normalizeStatus(selectedTicket.status))}>
+                    {normalizeStatus(selectedTicket.status)}
+                  </div>
+                  <button className="modal-close" onClick={closeModal}>×</button>
+                </div>
+              </div>
+
+              <div className="modal-content">
+                {/* Timeline */}
+                {normalizeStatus(selectedTicket.status) !== 'Cancelled' && (
+                  <div className="td-timeline">
+                     <div className="td-progress-bar">
+                       <div className="td-progress-fill" style={{ width: '25%' }}></div>
+                     </div>
+                     {['Submitted', 'In Progress', 'Completed', 'Closed'].map((step, idx) => (
+                        <div key={step} className={`td-step ${idx === 0 ? 'active' : ''}`}>
+                          <div className="td-step-circle">{idx + 1}</div>
+                          <div className="td-step-label">{step}</div>
+                        </div>
+                     ))}
+                  </div>
+                )}
+                
+                <div className="td-grid">
+                  {/* LEFT COLUMN */}
+                  <div className="td-main">
+                    
+                    <div className="td-section">
+                      <div className="td-section-title">Issue Description</div>
+                      <div className="td-text">
+                        {selectedTicket.issue?.description || selectedTicket.description || 'N/A'}
+                      </div>
+                    </div>
+
+                    <div className="td-section">
+                        <div className="td-section-title">Product Details</div>
+                        <div className="td-text">
+                          <strong>Model:</strong> {getModel(selectedTicket)} <br/>
+                          <strong>Serial:</strong> {getSerial(selectedTicket)} <br/>
+                          <strong>Category:</strong> {getIssue(selectedTicket)}
+                        </div>
+                    </div>
+
+                    <div className="td-section">
+                        <div className="td-section-title">Customer Details</div>
+                        <div className="td-text">
+                          {/* Ελέγχουμε αν τα στοιχεία είναι χύμα ή μέσα σε contactInfo */}
+                          <strong>Name:</strong> {selectedTicket.contactInfo?.fullName || selectedTicket.contactName || selectedTicket.fullName || 'N/A'} <br/>
+                          <strong>Email:</strong> {selectedTicket.contactInfo?.email || selectedTicket.contactEmail || selectedTicket.email || 'N/A'} <br/>
+                          <strong>Phone:</strong> {selectedTicket.contactInfo?.phone || selectedTicket.phone || 'N/A'}
+                        </div>
+                    </div>
+                    
+                    {/* SHIPPING DETAILS */}
+                    <div className="td-section">
+                        <div className="td-section-title">Shipping Details</div>
+                        <div className="td-text">
+                          {(selectedTicket.deliveryMethod === 'dropoff' || selectedTicket.address === 'Store Drop-off') ? (
+                             <div className="td-logistics-dropoff">
+                                <span>Customer will bring to store (Drop-off)</span>
+                             </div>
+                          ) : (
+                             <div>
+                                <div className="td-logistics-courier">
+                                    <span>Courier Pickup</span>
+                                </div>
+                                <div className="td-logistics-details">
+                                    <strong>Address:</strong> {selectedTicket.address || 'N/A'} <br/>
+                                    <strong>City:</strong> {selectedTicket.city || 'N/A'} <br/>
+                                    <strong>Postal Code:</strong> {selectedTicket.postalCode || selectedTicket.zipCode || 'N/A'}
+                                </div>
+                             </div>
+                          )}
+                        </div>
+                    </div>
+                  </div>
+
+                  {/* RIGHT SIDEBAR */}
+                  <div className="td-sidebar">
+                    <div className="td-section">
+                      <div className="td-section-title">Request Type</div>
+                      <div className={`td-text ${getServiceType(selectedTicket)==='Return' ? 'td-text-return' : 'td-text-repair'}`}>
+                          {getServiceType(selectedTicket)}
+                      </div>
+                    </div>
+                    <div className="td-section">
+                      <div className="td-section-title">Date Submitted</div>
+                      <div className="td-text">{formatDateTime(selectedTicket.createdAt)}</div>
+                    </div>
+                    <div className="td-section">
+                      <div className="td-section-title">Purchase Date</div>
+                      <div className="td-text">
+                        {/* Έλεγχος σε πολλαπλά σημεία για την ημερομηνία αγοράς */}
+                        {(selectedTicket.product?.purchaseDate || selectedTicket.purchaseDate)
+                          ? new Date(selectedTicket.product?.purchaseDate || selectedTicket.purchaseDate).toLocaleDateString() 
+                          : 'N/A'}
+                      </div>
+                    </div>
+
+                    {/* ATTACHMENTS */}
+                    <div className="td-attachments">
+                        <div className="td-section-title" style={{marginBottom:'10px'}}>Attachments</div>
+                        
+                        {/* Invoice Check */}
+                        {selectedTicket.invoiceFileName ? (
+                          <div className="td-attachment-group">
+                             <div className="td-attachment-label">Invoice</div>
+                             <div className="td-file-row">
+                                <span className="td-file-icon">📄</span>
+                                <span>{selectedTicket.invoiceFileName}</span>
+                             </div>
+                          </div>
+                        ) : null}
+
+                        {/* Photos Check */}
+                        {(selectedTicket.photos && selectedTicket.photos.length > 0) ? (
+                          <div className="td-attachment-group">
+                             <div className="td-attachment-label">Photos ({selectedTicket.photos.length})</div>
+                             <ul className="td-file-list">
+                                {selectedTicket.photos.map((f, i) => (
+                                  <li key={i} className="td-file-item">
+                                    <span className="td-file-icon">📷</span>
+                                    <span>{typeof f === 'string' ? f : f.name || 'Image'}</span>
+                                  </li>
+                                ))}
+                             </ul>
+                          </div>
+                        ) : null}
+                        
+                        {!selectedTicket.invoiceFileName && (!selectedTicket.photos || selectedTicket.photos.length === 0) && (
+                            <div className="td-text" style={{color:'#9ca3af', fontStyle:'italic'}}>No attachments found.</div>
+                        )}
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
   );
 }
