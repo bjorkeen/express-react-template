@@ -127,6 +127,20 @@ exports.getAllTickets = async (req, res) => {
     res.status(500).json({ message: "Error fetching all tickets" });
   }
 };
+// despoina all tickets for manager
+exports.getAllTicketsAdmin = async (req, res) => {
+  try {
+    // Φέρνουμε όλα τα tickets και κάνουμε populate τα στοιχεία του πελάτη και του τεχνικού
+    const tickets = await Ticket.find({})
+      .populate('customer', 'fullName email')
+      .populate('assignedRepairCenter', 'fullName')
+      .sort({ createdAt: -1 });
+    
+    res.json(tickets);
+  } catch (error) {
+    res.status(500).json({ message: "Σφάλμα κατά την ανάκτηση όλων των tickets" });
+  }
+};
 
 exports.getAssignedTickets = async (req, res) => {
   try {

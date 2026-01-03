@@ -40,6 +40,11 @@ export const getAllTickets = async () => {
     throw error;
   }
 };
+// despoina service call for manager
+export const getAllTicketsAdmin = async () => {
+  const response = await api.get('/tickets/admin/all');
+  return response.data;
+};
 
 // --- FIX HERE: RENAMED TO getTicket TO MATCH YOUR FRONTEND ---
 export const getTicket = async (id) => {
