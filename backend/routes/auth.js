@@ -11,6 +11,6 @@ router.post('/logout', logout);
 
 router.get('/me', protect, getMe);
 
-router.post('/create-user', protect, authorize('Admin'), adminCreateUser);
+router.post('/create-user', protect, authorize('Admin', 'Manager'), adminCreateUser);
 
 module.exports = router;

@@ -78,7 +78,7 @@ const Header = () => {
                 <Link to="/requests" className={styles.link}>🎟 Requests</Link>
                 <Link to="/create-ticket" className={styles.link}>+ New Request</Link>
 
-                {user?.role === 'Admin' && (
+                {['Admin', 'Manager'].includes(user?.role)&& (
                   <button className={styles.btnCreateUser} onClick={() => setShowCreateModal(true)}>
                     + Create User
                   </button>
