@@ -40,4 +40,10 @@ export const deleteUser = async (id) => {
   return response.data;
 };
 
+// Update User
+export const updateUser = async (id, userData) => {
+  const response = await api.put(`/auth/users/${id}`, userData);
+  return response.data;
+};
+
 
