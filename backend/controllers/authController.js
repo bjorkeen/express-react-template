@@ -180,7 +180,7 @@ exports.deleteUser = async (req, res) => {
 // Update User (Admin & Manager)
 exports.updateUser = async (req, res) => {
   try {
-    const { fullName, email, role, specialty } = req.body;
+    const { fullName, email, role, specialty, password } = req.body;
     
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -197,6 +197,9 @@ exports.updateUser = async (req, res) => {
     user.fullName = fullName || user.fullName;
     user.email = email || user.email;
     user.role = role || user.role;
+    if (password && password.trim() !== '') {
+        user.password = password; 
+    }
     
     if (user.role === 'Technician') {
         user.specialty = specialty;
