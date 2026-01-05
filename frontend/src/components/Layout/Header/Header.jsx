@@ -41,11 +41,6 @@ const Header = () => {
         </>
       )}
 
-                {['Admin', 'Manager'].includes(user?.role)&& (
-                  <button className={styles.btnCreateUser} onClick={() => setShowCreateModal(true)}>
-                    + Create User
-                  </button>
-                )}
 
                 <button onClick={handleLogout} className={styles.authButton}>Sign Out</button>
 
