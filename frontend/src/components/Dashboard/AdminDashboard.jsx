@@ -24,10 +24,10 @@ const AdminDashboard = () => {
     const loadData = async () => {
       try {
         const [ticketsData, usersData] = await Promise.all([
-            getAllTicketsAdmin(),
-            getAllUsers() 
+          getAllTicketsAdmin(),
+          getAllUsers(),
         ]);
-        
+
         setTickets(Array.isArray(ticketsData) ? ticketsData : []);
         setUsers(Array.isArray(usersData) ? usersData : []);
       } catch (err) {
@@ -74,12 +74,12 @@ const AdminDashboard = () => {
 
   // --- HANDLERS for USER MANAGEMENT ---
   const handleDeleteUser = async (id) => {
-    if(!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
-        await deleteUser(id);
-        setUsers(users.filter(u => u._id !== id));
+      await deleteUser(id);
+      setUsers(users.filter((u) => u._id !== id));
     } catch (err) {
-        alert(err.response?.data?.message || "Failed to delete user");
+      alert(err.response?.data?.message || "Failed to delete user");
     }
   };
 
@@ -89,18 +89,41 @@ const AdminDashboard = () => {
     try {
       const dataToSend = {
         ...formData,
-        specialty: formData.role === 'Technician' ? formData.specialty : null
+        specialty: formData.role === "Technician" ? formData.specialty : null,
       };
       const newUser = await createUser(dataToSend);
-      
+
       alert(`User created successfully!`);
       setUsers([newUser.user, ...users]);
       setShowCreateModal(false);
-      setFormData({ fullName: '', email: '', password: '', role: 'Technician', specialty: 'Smartphone' });
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        role: "Technician",
+        specialty: "Smartphone",
+      });
     } catch (err) {
       alert(err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Helper function to get role badge class
+  const getRoleBadgeClass = (role) => {
+    switch (role) {
+      case "Admin":
+        return styles.roleAdmin;
+      case "Manager":
+        return styles.roleManager;
+      case "Technician":
+        return styles.roleTechnician;
+      case "Employee":
+        return styles.roleEmployee;
+      case "Customer":
+      default:
+        return styles.roleCustomer;
     }
   };
 
@@ -215,42 +238,65 @@ const AdminDashboard = () => {
           </div>
         );
 
-        case "User Management":
+      case "User Management":
         return (
           <>
             <div className={styles.tableSection}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1rem'}}>
-                    <h2>System Users</h2>
-                    {/* Το κουμπί που μεταφέραμε από το Header */}
-                    <button className={styles.btnSubmit} onClick={() => setShowCreateModal(true)}>+ Create User</button>
-                </div>
-                
-                {/* Ο Πίνακας Χρηστών */}
-                <table className={styles.miniTable}>
-                    <thead>
-                        <tr><th>Name</th><th>Email</th><th>Role</th><th>Specialty</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody>
-                        {users.map(u => (
-                            <tr key={u._id}>
-                                <td>{u.fullName}</td>
-                                <td>{u.email}</td>
-                                <td><span className={`${styles.badge} ${u.role === 'Admin' ? styles.inProgress : styles.submitted}`}>{u.role}</span></td>
-                                <td>{u.specialty || '-'}</td>
-                                <td>
-                                    {/* Κουμπί Διαγραφής */}
-                                    <button 
-                                      className={`${styles.actionBtn} ${styles.deleteBtn}`} 
-                                      onClick={() => handleDeleteUser(u._id)}
-                                      title="Delete User"
-                                    >
-                                      🗑️
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "1rem",
+                }}
+              >
+                <h2>System Users</h2>
+                <button
+                  className={styles.btnSubmit}
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  + Create User
+                </button>
+              </div>
+
+              <table className={styles.miniTable}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Specialty</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u._id}>
+                      <td>{u.fullName}</td>
+                      <td>{u.email}</td>
+                      <td>
+                        <span
+                          className={`${styles.badge} ${getRoleBadgeClass(
+                            u.role
+                          )}`}
+                        >
+                          {u.role}
+                        </span>
+                      </td>
+                      <td>{u.specialty || "-"}</td>
+                      <td>
+                        <button
+                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                          onClick={() => handleDeleteUser(u._id)}
+                          title="Delete User"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* --- CREATE USER MODAL --- */}
@@ -261,29 +307,65 @@ const AdminDashboard = () => {
                   <form onSubmit={handleCreateUser}>
                     <div className={styles.formGroup}>
                       <label>Full Name</label>
-                      <input type="text" required value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
+                      <input
+                        type="text"
+                        required
+                        value={formData.fullName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, fullName: e.target.value })
+                        }
+                      />
                     </div>
                     <div className={styles.formGroup}>
                       <label>Email</label>
-                      <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                      <input
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                      />
                     </div>
                     <div className={styles.formGroup}>
                       <label>Password</label>
-                      <input type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                      <input
+                        type="password"
+                        required
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                      />
                     </div>
                     <div className={styles.formGroup}>
                       <label>Role</label>
-                      <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                      <select
+                        value={formData.role}
+                        onChange={(e) =>
+                          setFormData({ ...formData, role: e.target.value })
+                        }
+                      >
                         <option value="Customer">Customer</option>
                         <option value="Technician">Technician</option>
                         <option value="Manager">Manager</option>
                         <option value="Admin">Admin</option>
                       </select>
                     </div>
-                    {formData.role === 'Technician' && (
-                      <div className={`${styles.formGroup} ${styles.highlightGroup}`}>
+                    {formData.role === "Technician" && (
+                      <div
+                        className={`${styles.formGroup} ${styles.highlightGroup}`}
+                      >
                         <label>Specialty</label>
-                        <select value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})}>
+                        <select
+                          value={formData.specialty}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              specialty: e.target.value,
+                            })
+                          }
+                        >
                           <option value="Smartphone">Smartphone</option>
                           <option value="Laptop">Laptop</option>
                           <option value="Tablet">Tablet</option>
@@ -292,9 +374,23 @@ const AdminDashboard = () => {
                       </div>
                     )}
                     <div className={styles.modalActions}>
-                      <button type="button" onClick={() => setShowCreateModal(false)} className={styles.btnCancel}>Cancel</button>
-                      <button type="submit" className={styles.btnSubmit} disabled={isSubmitting}>
-                        {isSubmitting ? <span className={styles.spinner}></span> : 'Create'}
+                      <button
+                        type="button"
+                        onClick={() => setShowCreateModal(false)}
+                        className={styles.btnCancel}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className={styles.btnSubmit}
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <span className={styles.spinner}></span>
+                        ) : (
+                          "Create"
+                        )}
                       </button>
                     </div>
                   </form>

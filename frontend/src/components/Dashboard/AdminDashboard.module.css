@@ -334,3 +334,29 @@
     border-top-color: #fff; animation: spin 1s linear infinite; margin-right: 5px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ROLE BADGES */
+.roleAdmin { 
+    background-color: #f3e8ff; 
+    color: #7e22ce; 
+}
+
+.roleManager { 
+    background-color: #fff7ed;
+    color: #c2410c; 
+}
+
+.roleTechnician { 
+    background-color: #eff6ff;
+    color: #2563eb; 
+}
+
+.roleEmployee { 
+    background-color: #f0fdf4;
+    color: #15803d; 
+}
+
+.roleCustomer { 
+    background-color: #f1f5f9;
+    color: #475569; 
+}
