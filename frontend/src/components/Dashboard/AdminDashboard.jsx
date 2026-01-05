@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { getAllTicketsAdmin } from "@/services/ticketService";
-// ΠΡΟΣΘΗΚΗ: updateUser στο import
 import { getAllUsers, deleteUser, createUser, updateUser } from "@/services/authService"; 
 import styles from "./AdminDashboard.module.css";
 import { useNotification } from "@/context/NotificationContext";
@@ -14,12 +13,12 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Overview");
 
-  // --- Filter States (Για το Tab 'All Tickets') ---
+  // --- Filter States ---
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
-  // --- Modal States (Create / Edit) ---
-  const [showModal, setShowModal] = useState(false); // Ενιαίο Modal
+  // --- Modal States ---
+  const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editUserId, setEditUserId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +52,7 @@ const AdminDashboard = () => {
   }, []);
 
 
-  // --- STATISTICS & FILTERS (Διατηρήθηκαν από τον κώδικά σου) ---
+  // --- STATISTICS (TICKETS) ---
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
       const matchesSearch =
@@ -80,10 +79,19 @@ const AdminDashboard = () => {
     };
   }, [tickets]);
 
+  // --- STATISTICS (USERS)  ---
+  const userStats = useMemo(() => {
+    const admins = users.filter(u => u.role === 'Admin').length;
+    const managers = users.filter(u => u.role === 'Manager').length;
+    const technicians = users.filter(u => u.role === 'Technician').length;
+    const employees = users.filter(u => u.role === 'Employee').length;
+    const customers = users.filter(u => u.role === 'Customer').length;
+    
+    return { admins, managers, technicians, employees, customers };
+  }, [users]);
 
-  // --- USER HANDLERS (New Logic) ---
 
-  // 1. DELETE FLOW
+  // --- USER HANDLERS ---
   const initiateDelete = (user) => {
     setUserToDelete(user);
     setShowDeleteConfirm(true);
@@ -103,7 +111,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // 2. CREATE / EDIT FLOW
   const openCreateModal = () => {
     setIsEditing(false);
     setEditUserId(null);
@@ -117,7 +124,7 @@ const AdminDashboard = () => {
     setFormData({
         fullName: user.fullName,
         email: user.email,
-        password: '', // Κενό για ασφάλεια
+        password: '',
         role: user.role,
         specialty: user.specialty || 'Smartphone'
     });
@@ -134,12 +141,10 @@ const AdminDashboard = () => {
       };
 
       if (isEditing) {
-          // UPDATE
           const response = await updateUser(editUserId, dataToSend);
           setUsers(users.map(u => (u._id || u.id) === editUserId ? response.user : u));
           showNotification("User updated successfully!", "success");
       } else {
-          // CREATE
           const newUser = await createUser(dataToSend);
           setUsers([newUser.user, ...users]);
           showNotification("User created successfully!", "success");
@@ -152,8 +157,6 @@ const AdminDashboard = () => {
     }
   };
 
-
-  // Helper for Badge Colors
   const getRoleBadgeClass = (role) => {
     switch (role) {
       case "Admin": return styles.roleAdmin;
@@ -170,7 +173,7 @@ const AdminDashboard = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       
-      // TAB 1: OVERVIEW (Διατηρήθηκε)
+      // TAB 1: OVERVIEW
       case "Overview":
         return (
           <>
@@ -208,7 +211,7 @@ const AdminDashboard = () => {
           </>
         );
 
-      // TAB 2: ALL TICKETS (Διατηρήθηκε)
+      // TAB 2: ALL TICKETS
       case "All Tickets":
         return (
           <div className={styles.tableSection}>
@@ -228,37 +231,47 @@ const AdminDashboard = () => {
           </div>
         );
 
-      // TAB 3: USER MANAGEMENT (Ενημερωμένο)
+      // TAB 3: USER MANAGEMENT (UPDATED)
       case "User Management":
         return (
-          <div className={styles.tableSection}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h2>System Users</h2>
-              <button className={styles.btnSubmit} onClick={openCreateModal}>+ Create User</button>
+          <>
+            {/* USER STATS */}
+            <div className={styles.statsGrid} style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+              <StatCard label="Admins" value={userStats.admins} icon="🛡️" color="#7e22ce" />
+              <StatCard label="Managers" value={userStats.managers} icon="💼" color="#f59e0b" />
+              <StatCard label="Technicians" value={userStats.technicians} icon="🔧" color="#3b82f6" />
+              <StatCard label="Employees" value={userStats.employees} icon="👔" color="#10b981" />
+              <StatCard label="Customers" value={userStats.customers} icon="👥" color="#64748b" />
             </div>
 
-            <table className={styles.miniTable}>
-              <thead>
-                <tr><th>Name</th><th>Email</th><th>Role</th><th>Specialty</th><th>Actions</th></tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u._id || u.id}>
-                    <td>{u.fullName}</td>
-                    <td>{u.email}</td>
-                    <td><span className={`${styles.badge} ${getRoleBadgeClass(u.role)}`}>{u.role}</span></td>
-                    <td>{u.specialty || "-"}</td>
-                    <td>
-                      {/* Edit Button */}
-                      <button className={styles.actionBtn} onClick={() => openEditModal(u)} title="Edit User">✏️</button>
-                      {/* Delete Button */}
-                      <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => initiateDelete(u)} title="Delete User">🗑️</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            {/* USER TABLE */}
+            <div className={styles.tableSection}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h2>System Users</h2>
+                <button className={styles.btnSubmit} onClick={openCreateModal}>+ Create User</button>
+              </div>
+
+              <table className={styles.miniTable}>
+                <thead>
+                  <tr><th>Name</th><th>Email</th><th>Role</th><th>Specialty</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u._id || u.id}>
+                      <td>{u.fullName}</td>
+                      <td>{u.email}</td>
+                      <td><span className={`${styles.badge} ${getRoleBadgeClass(u.role)}`}>{u.role}</span></td>
+                      <td>{u.specialty || "-"}</td>
+                      <td>
+                        <button className={styles.actionBtn} onClick={() => openEditModal(u)} title="Edit User">✏️</button>
+                        <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={() => initiateDelete(u)} title="Delete User">🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         );
 
       default:
@@ -361,7 +374,7 @@ const AdminDashboard = () => {
   );
 };
 
-// Component για τον Πίνακα Tickets (Διατηρήθηκε)
+// Sub-components
 const TicketTable = ({ data }) => (
   <table className={styles.miniTable}>
     <thead>
@@ -384,7 +397,6 @@ const TicketTable = ({ data }) => (
   </table>
 );
 
-// Component για τα Stats Cards (Διατηρήθηκε)
 const StatCard = ({ label, value, icon, color }) => (
   <div className={styles.statCard}>
     <div className={styles.iconBox} style={{ backgroundColor: `${color}15`, color: color }}>{icon}</div>
