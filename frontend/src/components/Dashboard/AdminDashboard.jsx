@@ -125,6 +125,7 @@ const AdminDashboard = () => {
   const openCreateModal = () => {
     setIsEditing(false);
     setEditUserId(null);
+    setShowPasswordInput(true);
     setFormData({ fullName: '', email: '', password: '', role: 'Technician', specialty: 'Smartphone' });
     setShowModal(true);
   };
@@ -132,6 +133,7 @@ const AdminDashboard = () => {
   const openEditModal = (user) => {
     setIsEditing(true);
     setEditUserId(user._id || user.id);
+    setShowPasswordInput(false);
     setFormData({
         fullName: user.fullName,
         email: user.email,
@@ -436,13 +438,31 @@ const AdminDashboard = () => {
                 <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
               </div>
               
-              {!isEditing && (
                 <div className={styles.formGroup}>
-                  <label>Password</label>
-                  <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+                <div className={styles.passwordHeader}>
+                    <label style={{marginBottom: 0}}>Password</label>
+                    {isEditing && (
+                        <button 
+                            type="button" 
+                            className={styles.btnResetLink}
+                            onClick={() => setShowPasswordInput(!showPasswordInput)}
+                        >
+                            {showPasswordInput ? 'Cancel Reset' : 'Reset Password'}
+                        </button>
+                    )}
                 </div>
-              )}
-
+                
+                {showPasswordInput && (
+                    <input 
+                        type="password" 
+                        required={!isEditing} 
+                        placeholder={isEditing ? "Enter new password to reset" : "Enter password"}
+                        value={formData.password} 
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+                    />
+                )}
+              </div>
+              
               <div className={styles.formGroup}>
                 <label>Role</label>
                 <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })}>
@@ -477,15 +497,16 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* --- CONFIRM DELETE MODAL --- */}
+{/* --- CONFIRM DELETE MODAL --- */}
       {showDeleteConfirm && (
         <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{textAlign: 'center', maxWidth: '350px'}}>
-              <h3 style={{color: '#ef4444'}}>Delete User?</h3>
+          <div className={`${styles.modalContent} ${styles.deleteModalContent}`}>
+              <h3 className={styles.deleteTitle}>Delete User?</h3>
               <p>Are you sure you want to delete <strong>{userToDelete?.fullName}</strong>?</p>
+              
               <div className={styles.modalActions} style={{justifyContent: 'center', marginTop: '1.5rem'}}>
                   <button onClick={() => setShowDeleteConfirm(false)} className={styles.btnCancel}>Cancel</button>
-                  <button onClick={confirmDelete} className={styles.btnSubmit} style={{backgroundColor: '#ef4444'}}>Yes, Delete</button>
+                  <button onClick={confirmDelete} className={styles.btnDelete}>Yes, Delete</button>
               </div>
           </div>
         </div>

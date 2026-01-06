@@ -495,3 +495,52 @@
     gap: 12px;
     margin-top: 8px;
 }
+
+/* DELETE MODAL SPECIFIC */
+.deleteModalContent {
+    text-align: center;
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+.deleteTitle {
+    color: #ef4444;
+    margin-top: 0;
+}
+
+.btnDelete {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btnDelete:hover {
+    background-color: #dc2626;
+}
+
+/* RESET PASSWORD BUTTON (Link Style) */
+.btnResetLink {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.btnResetLink:hover {
+    color: #1d4ed8;
+}
+
+.passwordHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
