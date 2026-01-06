@@ -31,7 +31,17 @@ const AdminDashboard = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-const [showPasswordInput, setShowPasswordInput] = useState(false);
+  // --- Settings State ---
+  const [warrantyPeriod, setWarrantyPeriod] = useState(() => {
+    const saved = localStorage.getItem('warrantyPeriod');
+    return saved ? parseInt(saved, 10) : 24;
+  });
+
+  const [returnPolicyDays, setReturnPolicyDays] = useState(() => {
+    const saved = localStorage.getItem('returnPolicyDays');
+    return saved ? parseInt(saved, 10) : 15;
+  });
+
 
   // --- LOAD DATA ---
   useEffect(() => {
@@ -277,6 +287,115 @@ const [showPasswordInput, setShowPasswordInput] = useState(false);
           </>
         );
 
+      // TAB 4: SETTINGS
+      case "Settings":
+        return (
+          <div className={styles.settingsWrapper}>
+            <header style={{ marginBottom: '1.5rem' }}>
+              <h2>System Settings</h2>
+              <p className={styles.subLabel}>Configure system-wide settings and rules</p>
+            </header>
+
+            {/* Warranty Rules */}
+            <section className={styles.settingsSection}>
+              <h3><span>⚙️</span> Warranty Rules</h3>
+              <div className={styles.formGroup}>
+                <label className={styles.statLabel}>Standard Warranty Period (months)</label>
+                <input 
+                  type="number" 
+                  value={warrantyPeriod} 
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10) || 0;
+                    setWarrantyPeriod(value);
+                    localStorage.setItem('warrantyPeriod', value.toString());
+                  }}
+                  className={styles.searchInput} 
+                  style={{ maxWidth: '200px' }} 
+                  min="1"
+                />
+                <p className={styles.subLabel}>Products purchased within this period are automatically validated as under warranty</p>
+              </div>
+              <div className={styles.highlightGroup}>
+                <p style={{ fontWeight: '700', fontSize: '0.85rem', marginBottom: '8px' }}>Current Rule</p>
+                <p className={styles.idCell} style={{ fontSize: '0.85rem', margin: '2px 0', fontFamily: 'monospace' }}>
+                  R1: If purchase date ≤ {warrantyPeriod} months → Under Warranty
+                </p>
+                <p className={styles.idCell} style={{ fontSize: '0.85rem', margin: '2px 0', fontFamily: 'monospace' }}>
+                  R2: If purchase date {'>'} {warrantyPeriod} months → Out of Warranty
+                </p>
+              </div>
+            </section>
+            <section className={styles.settingsSection}>
+            <h3><span>🔄</span> Return Policy</h3>
+            
+            <div className={styles.formGroup}>
+              <label className={styles.statLabel}>Return Eligibility Window</label>
+              <div className={styles.inlineInputGroup}>
+                <input 
+                  type="number" 
+                  value={returnPolicyDays} 
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value, 10) || 0;
+                    setReturnPolicyDays(value);
+                    localStorage.setItem('returnPolicyDays', value.toString());
+                  }}
+                  className={styles.searchInput} 
+                  style={{ width: '100px' }} 
+                  min="1"
+                />
+                <span className={styles.subLabel}>Days from date of purchase</span>
+              </div>
+            </div>
+
+            <div className={styles.returnRuleBox}>
+              <p className={styles.returnRuleTitle}>Return Policy Logic Check</p>
+              <p className={styles.returnRuleText}>
+                IF (days_since_purchase) ≤ {returnPolicyDays} → <span className={styles.returnEligible}>ELIGIBLE</span>
+              </p>
+              <p className={styles.returnRuleText}>
+                IF (days_since_purchase) {'>'} {returnPolicyDays} → <span className={styles.returnExpired}>EXPIRED</span>
+              </p>
+            </div>
+          </section>
+
+            {/* Notification Templates */}
+            <section className={styles.settingsSection}>
+              <h3>Notification Templates</h3>
+              <div className={styles.formGroup}>
+                <label className={styles.statLabel}>Email Template</label>
+                <textarea 
+                  className={styles.textareaField} 
+                  defaultValue={`Dear {customer_name},\n\nYour repair request {ticket_id} has been {status}.\n\n{details}\n\nThank you for choosing our service.`}
+                />
+                <div className={styles.variableContainer}>
+                  <span className={styles.subLabel} style={{ width: '100%' }}>Available Variables:</span>
+                  {['{customer_name}', '{ticket_id}', '{status}', '{details}', '{repair_center}'].map(tag => (
+                    <span key={tag} className={styles.variableBadge}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* SLA Configuration */}
+            <section className={styles.settingsSection}>
+              <h3>SLA Configuration</h3>
+              <div className={styles.chartsGrid}>
+                {['Low', 'Medium', 'High', 'Urgent'].map(level => (
+                  <div key={level} className={styles.formGroup}>
+                    <label className={styles.statLabel}>{level} Priority</label>
+                    <input type="number" className={styles.searchInput} placeholder="Days" />
+                    <p className={styles.subLabel}>Business days</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <div className={styles.saveActions}>
+              <button className={styles.btnSubmit} style={{ padding: '10px 30px' }}>Save Settings</button>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className={styles.placeholderView}>
@@ -286,6 +405,7 @@ const [showPasswordInput, setShowPasswordInput] = useState(false);
         );
     }
   };
+  
 
   return (
     <div className={styles.container}>
