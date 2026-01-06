@@ -329,22 +329,13 @@ const AdminDashboard = () => {
           </>
         );
 
-      // TAB 3: REPORTS
       case "Reports":
         return (
           <div className={styles.reportsContainer}>
             <div className={styles.statsGrid}>
               <StatCard label="Total Feedbacks" value={totalReviews} icon="💬" color="#2563eb" />
-              <StatCard 
-                  label="Avg. Rating" 
-                  value={avgRating} 
-                  icon="⭐" 
-                  color="#eab308" 
-              />
+              <StatCard label="Avg. Rating" value={`${avgRating} / 5`} icon="⭐" color="#eab308" />
             </div>
-
-            
-
             <div className={styles.chartGrid}>
               <div className={styles.chartCard}>
                 <h3>Rating Distribution</h3>
@@ -488,7 +479,13 @@ const AdminDashboard = () => {
             </section>
 
             <div className={styles.saveActions}>
-              <button className={styles.btnSubmit} style={{ padding: '10px 30px' }}>Save Settings</button>
+              <button 
+                className={styles.btnSubmit} 
+                style={{ padding: '10px 30px' }}
+                onClick={() => showNotification("Settings saved successfully!", "success")}
+              >
+                Save Settings
+              </button>
             </div>
           </div>
         );

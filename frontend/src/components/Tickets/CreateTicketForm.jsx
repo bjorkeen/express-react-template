@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTicket, updateTicketStatus } from "@/services/ticketService";
+import { useNotification } from "@/context/NotificationContext";
 //filippa import
 import { useAccess } from "@/context/AccessContext"; 
 import "./CreateTicketForm.css";
@@ -39,6 +40,7 @@ const QUICK_SCRIPTS = {
 
 export default function CreateTicket() {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   //filippa
   const { user } = useAccess();
 
@@ -216,7 +218,7 @@ const handleAddScript = (text) => {
   const handleSaveDraft = () => {
     const draft = { mode, formData, savedAt: new Date().toISOString() };
     localStorage.setItem("createTicketDraft", JSON.stringify(draft));
-    alert("Draft saved locally.");
+    showNotification("Draft saved locally.", "success");
   };
 
   const handleCancel = () => navigate(-1);
@@ -562,11 +564,11 @@ const handleAddScript = (text) => {
       <div className="modal-overlay">
         <div className="modal-box success-modal">
           <div className="modal-icon">📦</div>
-          <h2>Αίτημα #{createdTicketId}</h2>
-          <p>Το αίτημά σας δημιουργήθηκε επιτυχώς! Εκτυπώστε το label για να προχωρήσουμε.</p>
+          <h2>Ticket Form #{createdTicketId}</h2>
+          <p>Your request has been successfully created! Please print the label to proceed.</p>
           
           <div className="modal-info-box">
-            <strong>Προσοχή:</strong> Με την εκτύπωση, το status γίνεται <b>Shipping</b> και η ακύρωση κλειδώνει.
+            <strong>Attention:</strong> Once printed, the status will change to <b>Shipping</b> and cancellation will be locked.
           </div>
 
           <div className="modal-footer-btns">
@@ -579,13 +581,13 @@ const handleAddScript = (text) => {
             <button 
               className="btn-modal-cancel" 
               onClick={async () => {
-                if(window.confirm("Θέλετε σίγουρα να ακυρώσετε αυτό το αίτημα;")) {
-                  try {
-                    await updateTicketStatus(ticketDbId, "Cancelled");
-                    setShowSuccessModal(false);
-                  } catch (err) {
-                    setShowSuccessModal(false);
-                  }
+                try {
+                  await updateTicketStatus(ticketDbId, "Cancelled");
+                  showNotification("Request cancelled successfully.", "success");
+                  setShowSuccessModal(false);
+                } catch (err) {
+                  showNotification("Error cancelling the request. Please try again.", "error");
+                  setShowSuccessModal(false);
                 }
               }}
             >

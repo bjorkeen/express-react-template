@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyTickets, getTicket, submitFeedback } from "@/services/ticketService";
-import { useAccess } from "@/context/AccessContext"; 
+import { useAccess } from "@/context/AccessContext";
+import { useNotification } from "@/context/NotificationContext";
 import "./CustomerDashboard.css";
 import WelcomeMessage from "./WelcomeMessage";
 
@@ -38,6 +39,7 @@ function getServiceType(t) { return t.serviceType || t.type || "Repair"; }
 export default function CustomerDashboard() {
   const navigate = useNavigate();
   const { user } = useAccess();
+  const { showNotification } = useNotification();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -407,7 +409,7 @@ export default function CustomerDashboard() {
                             try {
                               const ticketId = selectedTicket._id || selectedTicket.id;
                               await submitFeedback(ticketId, { rating: star, comment: "" });
-                              alert("Thank you for your feedback!");
+                              showNotification("Thank you for your feedback!", "success");
                               if (ticketId) {
                                 setRatedTicketIds(prev => {
                                   const newSet = new Set(prev).add(ticketId);
@@ -418,7 +420,7 @@ export default function CustomerDashboard() {
                               setShowRatingModal(false);
                             } catch (error) {
                               console.error("Feedback error", error);
-                              alert("Could not submit feedback. Please try again.");
+                              showNotification("Could not submit feedback. Please try again.", "error");
                             }
                           }}
                         >

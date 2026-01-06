@@ -545,8 +545,8 @@
     margin-bottom: 0.5rem;
 }
 
-/* Reports & Rating Charts */
-.analyticsContainer {
+/* --- Reports & KPI Charts --- */
+.reportsContainer {
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -555,6 +555,7 @@
 
 .chartGrid {
     display: grid;
+    /* Two columns on desktop, stacks on mobile */
     grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
     gap: 1.5rem;
 }
@@ -565,6 +566,11 @@
     border-radius: 12px;
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.chartCard:hover {
+    transform: translateY(-2px);
 }
 
 .chartCard h3 {
@@ -579,7 +585,7 @@
 
 .chartWrapper {
     width: 100%;
-    height: 320px;
+    height: 320px; /* Ensures consistent height for Recharts */
 }
 
 @keyframes fadeIn {
