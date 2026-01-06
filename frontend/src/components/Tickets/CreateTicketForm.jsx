@@ -78,6 +78,34 @@ export default function CreateTicket() {
   }, [user]);
 
   const [warrantyCheck, setWarrantyCheck] = useState(null);
+
+  // Get warranty period from settings (localStorage)
+  const [warrantyPeriod, setWarrantyPeriod] = useState(() => {
+    const saved = localStorage.getItem('warrantyPeriod');
+    return saved ? parseInt(saved, 10) : 24;
+  });
+
+  // Get return policy days from settings (localStorage)
+  const [returnPolicyDays, setReturnPolicyDays] = useState(() => {
+    const saved = localStorage.getItem('returnPolicyDays');
+    return saved ? parseInt(saved, 10) : 15;
+  });
+
+  // Changes to warranty period in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedWarranty = localStorage.getItem('warrantyPeriod');
+      if (savedWarranty) {
+        setWarrantyPeriod(parseInt(savedWarranty, 10));
+      }
+      const savedReturn = localStorage.getItem('returnPolicyDays');
+      if (savedReturn) {
+        setReturnPolicyDays(parseInt(savedReturn, 10));
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   const [invoiceFile, setInvoiceFile] = useState(null);
   
   //christos: files state
@@ -103,10 +131,10 @@ export default function CreateTicket() {
     const pDate = new Date(formData.purchaseDate);
     const today = new Date();
     const diffMonths = (today.getFullYear() - pDate.getFullYear()) * 12 + (today.getMonth() - pDate.getMonth());
-    return diffMonths > 24;
-  }, [formData.purchaseDate, mode]);
+    return diffMonths > warrantyPeriod;
+  }, [formData.purchaseDate, mode, warrantyPeriod]);
 
-  const isReturnExpired = mode === 'Return' && daysSincePurchase > 15;
+  const isReturnExpired = mode === 'Return' && daysSincePurchase > returnPolicyDays;
 
   useEffect(() => {
     if (!formData.purchaseDate) {
@@ -115,18 +143,18 @@ export default function CreateTicket() {
     }
     if (mode === 'Return') {
         if (!isReturnExpired) {
-            setWarrantyCheck({ msg: "Eligible for Return (Purchased within 15 days)", type: "success" });
+            setWarrantyCheck({ msg: `Eligible for Return (Purchased within ${returnPolicyDays} days)`, type: "success" });
         } else {
             setWarrantyCheck({ msg: `Return Period Expired (${daysSincePurchase} days ago).`, type: "warning" });
         }
     } else {
         if (!isWarrantyExpired) {
-            setWarrantyCheck({ msg: "Under Warranty (Purchased less than 24 months ago)", type: "success" });
+            setWarrantyCheck({ msg: `Under Warranty (Purchased less than ${warrantyPeriod} months ago)`, type: "success" });
         } else {
-            setWarrantyCheck({ msg: "Out of Warranty (Over 24 months).", type: "warning" });
+            setWarrantyCheck({ msg: `Out of Warranty (Over ${warrantyPeriod} months).`, type: "warning" });
         }
     }
-  }, [formData.purchaseDate, mode, isReturnExpired, isWarrantyExpired, daysSincePurchase]);
+  }, [formData.purchaseDate, mode, isReturnExpired, isWarrantyExpired, daysSincePurchase, warrantyPeriod, returnPolicyDays]);
 
   //christos & filippa validation combined
   const isValid = useMemo(() => {
@@ -267,7 +295,7 @@ const handleAddScript = (text) => {
   //filippa: Block Messages
   const getBlockMessage = () => {
       if (isReturnExpired) return "Cannot submit: Return period expired";
-      if (isWarrantyExpired) return "Cannot submit: Out of Warranty (24+ months)";
+      if (isWarrantyExpired) return `Cannot submit: Out of Warranty (${warrantyPeriod}+ months)`;
       return null;
   };
   const blockMsg = getBlockMessage();
@@ -285,7 +313,7 @@ const handleAddScript = (text) => {
         <div className="ct-header">
           <h1 className="ct-title">{mode === 'Repair' ? 'Create Repair Ticket' : 'Create Return Request'}</h1>
           <p className="ct-subtitle">
-            {mode === 'Repair' ? 'Standard warranty check: 24 Months coverage.' : 'Return policy check: Eligible within 15 Days of purchase.'}
+            {mode === 'Repair' ? `Standard warranty check: ${warrantyPeriod} Months coverage.` : `Return policy check: Eligible within ${returnPolicyDays} Days of purchase.`}
           </p>
         </div>
 
