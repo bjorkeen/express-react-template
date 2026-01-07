@@ -12,39 +12,28 @@ const ticketSchema = new mongoose.Schema({
     unique: true,
   },
 
-  //filippa service type logic
+  // filippa service logic
   serviceType: {
     type: String,
     enum: ['Repair', 'Return'],
     default: 'Repair'
   },
 
-  
   // filippa delivery method 
-  
   deliveryMethod: {
     type: String,
     enum: ['courier', 'dropoff'],
     default: 'courier'
   },
   
-  // Shipping Details
-  address: { type: String },
-  city: { type: String },
-  postalCode: { type: String }, // H φόρμα στέλνει postalCode
-  
-  // Contact & Photos
-  phone: { type: String },
-  contactName: { type: String }, 
-  contactEmail: { type: String },
-
-  photos: [{ type: String }], 
-  invoiceFileName: { type: String }, 
-
-  //filippa contact details
+  // refactored contact info in one place
   contactInfo: {
-    fullName: { type: String },
-    email: { type: String }
+    fullName: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String },      
+    address: { type: String },    
+    city: { type: String },       
+    postalCode: { type: String }  
   },
 
   product: {
@@ -61,11 +50,8 @@ const ticketSchema = new mongoose.Schema({
   issue: {
     category: { type: String, required: true },
     description: { type: String, required: true },
-    
-    //christos attachments array definition
+    // christos attachments array definition (Main storage)
     attachments: [{ type: String }], 
-    
-    invoice: { type: String }
   },
 
   status: {
@@ -77,7 +63,7 @@ const ticketSchema = new mongoose.Schema({
     default: 'Submitted'
   },
 
-  //filippa extended warranty status enums
+  // filippa extended warranty status enums
   warrantyStatus: {
     type: String,
     enum: ['Under Warranty', 'Out of Warranty', 'Manual Review', 'Eligible for Return', 'Return Period Expired'],
@@ -97,11 +83,11 @@ const ticketSchema = new mongoose.Schema({
     notes: String
   }],
 
-  //added star rating feedback
+  // added star rating feedback
   feedback: {
-    rating: {type: Number, min : 1, max : 5},
-    comment: {type: String, trim: true},
-    createdAt: {type: Date}
+    rating: { type: Number, min : 1, max : 5 },
+    comment: { type: String, trim: true },
+    createdAt: { type: Date }
   },
 
   internalComments: [
@@ -111,7 +97,6 @@ const ticketSchema = new mongoose.Schema({
       createdAt: { type: Date, default: Date.now }
     }
   ]
-}, {timestamps: true}
-);
+}, { timestamps: true });
 
 module.exports = mongoose.model('Ticket', ticketSchema);
