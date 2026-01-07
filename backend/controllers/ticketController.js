@@ -20,6 +20,24 @@ const checkWarranty = (purchaseDate, serviceType) => {
   }
 };
 
+const STATUS_TRANSITIONS = {
+  Submitted: ["Pending Validation", "Cancelled"],
+  "Pending Validation": ["In Progress", "Cancelled"],
+  "In Progress": [
+    "Waiting for Parts",
+    "Shipping",
+    "Ready for Pickup",
+    "Completed",
+    "Cancelled",
+  ],
+  "Waiting for Parts": ["In Progress", "Cancelled"],
+  Shipping: ["Shipped Back", "Completed", "Cancelled"],
+  "Shipped Back": ["Completed"],
+  "Ready for Pickup": ["Completed", "Cancelled"],
+  Completed: [],
+  Cancelled: [],
+};
+
 exports.createTicket = async (req, res) => {
   try {
     const {
@@ -238,6 +256,21 @@ exports.updateTicketStatus = async (req, res) => {
     const ticket = await Ticket.findById(req.params.id).populate("customer");
     if (!ticket) return res.status(404).json({ message: "Ticket not found" });
 
+    const newStatus = status;
+    const currentStatus = ticket.status || "Submitted";
+
+    if (req.user.role === "Technician") {
+      const allowed = STATUS_TRANSITIONS[currentStatus] || [];
+
+      // Allow no-op (same status)
+      if (newStatus !== currentStatus && !allowed.includes(newStatus)) {
+        return res.status(400).json({
+          message: `Invalid status transition: '${currentStatus}' → '${newStatus}'`,
+          allowedNextStatuses: allowed,
+        });
+      }
+    }
+
     const oldStatus = ticket.status;
 
     ticket.history.push({
@@ -272,17 +305,37 @@ exports.updateTicketStatus = async (req, res) => {
 
 exports.addInternalComment = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, type } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Comment text is required." });
+    }
+
+    const allowedTypes = [
+      "Note",
+      "Waiting for Parts",
+      "Escalation",
+      "SLA Risk",
+    ];
+    const safeType = allowedTypes.includes(type) ? type : "Note";
+
     const ticket = await Ticket.findById(req.params.id);
     if (!ticket) return res.status(404).json({ message: "Ticket not found" });
 
-    ticket.internalComments.push({ by: req.user.userId, text });
+    ticket.internalComments = ticket.internalComments || [];
+    ticket.internalComments.push({
+      by: req.user.userId,
+      text: text.trim(),
+      type: safeType,
+    });
+
     await ticket.save();
 
     const updated = await Ticket.findById(req.params.id).populate(
       "internalComments.by",
-      "fullName role"
+      "fullName email role"
     );
+
     res.json(updated);
   } catch (error) {
     res.status(500).json({ message: "Error adding comment" });

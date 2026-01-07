@@ -6,6 +6,24 @@ import {
 } from "@/services/ticketService";
 import "./TechnicianDashboard.css";
 
+const STATUS_TRANSITIONS = {
+  Submitted: ["Pending Validation", "Cancelled"],
+  "Pending Validation": ["In Progress", "Cancelled"],
+  "In Progress": [
+    "Waiting for Parts",
+    "Shipping",
+    "Ready for Pickup",
+    "Completed",
+    "Cancelled",
+  ],
+  "Waiting for Parts": ["In Progress", "Cancelled"],
+  Shipping: ["Pending Validation", "In Progress", "Cancelled"],
+  "Shipped Back": ["Completed"],
+  "Ready for Pickup": ["Completed", "Cancelled"],
+  Completed: [],
+  Cancelled: [],
+};
+
 const TechnicianDashboard = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
@@ -161,20 +179,12 @@ const TechnicianDashboard = () => {
                         handleStatusChange(ticket._id, e.target.value)
                       }
                     >
-                      <option value="Submitted">Submitted</option>
-                      <option value="Shipping">Shipping</option>
-                      <option value="Pending Validation">
-                        Pending Validation
-                      </option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Waiting for Parts">
-                        Waiting for Parts
-                      </option>
-                      <option value="Shipped Back">Shipped Back</option>
-                      <option value="Ready for Pickup">Ready for Pickup</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Closed">Closed</option>
-                      <option value="Cancelled">Cancelled</option>
+                      <option value={ticket.status}>{ticket.status}</option>
+                      {(STATUS_TRANSITIONS[ticket.status] || []).map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
                     </select>
                   </td>
                   <td>
@@ -199,33 +209,75 @@ const TechnicianDashboard = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', background: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                Showing {indexOfFirstTicket + 1} to {Math.min(indexOfLastTicket, tickets.length)} of {tickets.length}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "16px 24px",
+                background: "#f9fafb",
+                borderTop: "1px solid #e5e7eb",
+              }}
+            >
+              <div style={{ fontSize: "14px", color: "#6b7280" }}>
+                Showing {indexOfFirstTicket + 1} to{" "}
+                {Math.min(indexOfLastTicket, tickets.length)} of{" "}
+                {tickets.length}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button 
-                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '600', opacity: currentPage === 1 ? 0.5 : 1 }} 
-                  disabled={currentPage === 1} 
-                  onClick={() => setCurrentPage(prev => prev - 1)}
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <button
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #d1d5db",
+                    background: "white",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    opacity: currentPage === 1 ? 0.5 : 1,
+                  }}
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
                 >
                   Previous
                 </button>
-                <div style={{ display: 'flex', gap: '4px' }}>
+                <div style={{ display: "flex", gap: "4px" }}>
                   {[...Array(totalPages)].map((_, i) => (
-                    <button 
-                      key={i + 1} 
-                      style={{ width: '32px', height: '32px', borderRadius: '6px', border: '1px solid #d1d5db', background: currentPage === i + 1 ? '#2563eb' : 'white', color: currentPage === i + 1 ? 'white' : '#374151', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }} 
+                    <button
+                      key={i + 1}
+                      style={{
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "6px",
+                        border: "1px solid #d1d5db",
+                        background: currentPage === i + 1 ? "#2563eb" : "white",
+                        color: currentPage === i + 1 ? "white" : "#374151",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                      }}
                       onClick={() => setCurrentPage(i + 1)}
                     >
                       {i + 1}
                     </button>
                   ))}
                 </div>
-                <button 
-                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #d1d5db', background: 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: '600', opacity: currentPage === totalPages ? 0.5 : 1 }} 
-                  disabled={currentPage === totalPages} 
-                  onClick={() => setCurrentPage(prev => prev + 1)}
+                <button
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #d1d5db",
+                    background: "white",
+                    cursor:
+                      currentPage === totalPages ? "not-allowed" : "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    opacity: currentPage === totalPages ? 0.5 : 1,
+                  }}
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
                 >
                   Next
                 </button>

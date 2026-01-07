@@ -287,3 +287,42 @@
   margin-top: 5px;
   box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3);
 }
+
+.td-comment-meta-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.td-comment-chip {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.td-chip-note {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.td-chip-waiting {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-color: #7dd3fc;
+}
+
+.td-chip-escalation {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+.td-chip-sla {
+  background-color: #fff7ed;
+  color: #9a3412;
+  border-color: #fdba74;
+}
