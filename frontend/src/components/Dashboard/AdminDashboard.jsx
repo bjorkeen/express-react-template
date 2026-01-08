@@ -354,22 +354,6 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </div>
               </div>
-
-              <div className={styles.chartCard}>
-                <h3>Satisfaction Mix</h3>
-                <div className={styles.chartWrapper}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={chartData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="count">
-                        {chartData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
             </div>
           </div>
         );
