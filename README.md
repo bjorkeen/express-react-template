@@ -118,7 +118,7 @@ cd the-refund-awakens
 docker compose up --build
 ```
 
-3.Access the app:
+3. Access the app:
 
     Frontend: http://localhost:3000
 
