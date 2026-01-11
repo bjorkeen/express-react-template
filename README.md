@@ -105,24 +105,24 @@ graph TB
 
 ### Installation & Run
 
-    1. Clone the repository:
+1. Clone the repository:
 
 ```bash
     git clone [https://github.com/bjorkeen/the-refund-awakens.git](https://github.com/bjorkeen/the-refund-awakens.git)
 cd the-refund-awakens
 ```
 
-    2. Start the application (Production Mode):
+2. Start the application (Production Mode):
 
 ```bash
 docker compose up --build
 ```
 
-    3.Access the app:
+3.Access the app:
 
-        Frontend: http://localhost:3000
+    Frontend: http://localhost:3000
 
-        Backend API: http://localhost:5050
+    Backend API: http://localhost:5050
 
 ---
 
