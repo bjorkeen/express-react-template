@@ -24,7 +24,7 @@ router.post(
 // GET /api/tickets - Get user's tickets
 router.get("/", protect, ticketController.getMyTickets);
 
-// POST /api/tickets/:id/escalate - Escalate a ticket
+// POST /api/tickets/:id/escalate - Escalate ticket
 router.post(
   "/:id/escalate",
   protect,
