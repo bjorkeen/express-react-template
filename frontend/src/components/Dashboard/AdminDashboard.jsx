@@ -12,6 +12,19 @@ function getServiceType(t) {
   return t.serviceType || t.type || "Repair"; 
 }
 
+// Helper για τα Stale Tickets (παραμένουν ανοιχτά >5 λεπτά)
+const getStaleTickets = (tickets) => {
+  const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
+  const now = new Date();
+  
+  return tickets.filter(t => {
+    const isClosed = ["Completed", "Closed", "Cancelled"].includes(t.status);
+    const createdDate = new Date(t.createdAt);
+    const age = now - createdDate;
+    return !isClosed && age > FIVE_MINUTES_IN_MS;
+  });
+};
+
 const AdminDashboard = () => {
   const { showNotification } = useNotification();
   const navigate = useNavigate();
@@ -25,6 +38,7 @@ const AdminDashboard = () => {
   // --- Filter States ---
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [filterType, setFilterType] = useState("All");
 
   // --- Modal States ---
   const [showModal, setShowModal] = useState(false);
@@ -55,6 +69,9 @@ const AdminDashboard = () => {
   // --- Reports/KPI State ---
   const [kpiData, setKpiData] = useState([]);
   const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e']; // Red to Green logic
+
+  // Stale Tickets Memoization
+  const staleTickets = useMemo(() => getStaleTickets(tickets), [tickets]);
 
 
   // --- LOAD DATA ---
@@ -104,9 +121,11 @@ const AdminDashboard = () => {
         t.ticketId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.contactInfo?.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = filterStatus === "All" || t.status === filterStatus;
-      return matchesSearch && matchesStatus;
+      const ticketType = getServiceType(t);
+      const matchesType = filterType === "All" || ticketType === filterType;
+      return matchesSearch && matchesStatus && matchesType;
     });
-  }, [tickets, searchTerm, filterStatus]);
+  }, [tickets, searchTerm, filterStatus, filterType]);
 
   const stats = useMemo(() => {
     const total = tickets.length;
@@ -169,6 +188,38 @@ const repairReturnData = useMemo(() => {
     { name: "Return", value: returns, color: "#f59e0b" }
   ];
 }, [tickets]);
+
+// TICKET TYPE DISTRIBUTION (Smartphones, TVs, etc.)
+const ticketTypeData = useMemo(() => {
+  const counts = tickets.reduce((acc, t) => {
+    // Mapping to the product.type field defined in ticketController.js
+    const type = t.product?.type || "Other"; 
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  return Object.keys(counts).map(type => ({
+    name: type,
+    value: counts[type]
+  }));
+}, [tickets]);
+
+// Colors for the Pie Chart slices
+const TYPE_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#64748b'];
+
+// ESCALATED TICKETS DATA 
+const escalationData = useMemo(() => {
+  const escalatedCount = tickets.filter(t => t.escalated === true).length;
+  const normalCount = tickets.length - escalatedCount;
+
+  return [
+    { name: 'Escalated', value: escalatedCount },
+    { name: 'Normal', value: normalCount }
+  ];
+}, [tickets]);
+
+// Χρώματα για το γράφημα (Κόκκινο για τα Escalated)
+const ESCALATION_COLORS = ['#ef4444', '#e2e8f0'];
 
   // --- STATISTICS (USERS)  ---
   const userStats = useMemo(() => {
@@ -269,11 +320,31 @@ const repairReturnData = useMemo(() => {
       case "Overview":
         return (
           <>
+          {/* TICKET ALERT BOX */}
+          {staleTickets.length > 0 && (
+            <div className={styles.staleAlert}>
+              <div className={styles.alertIcon}>⚠️</div>
+              <div className={styles.alertText}>
+                <strong>Attention:</strong> There are {staleTickets.length} tickets open for more than 5 minutes.
+              </div>
+              <button 
+                className={styles.alertAction}
+                onClick={() => {
+                  setFilterStatus("All");
+                  setSearchTerm("");
+                  setActiveTab("All Tickets"); // Switch to list 
+                }}
+              >
+                View Stale Tickets
+              </button>
+            </div>
+          )}
             <div className={styles.statsGrid}>
               <StatCard label="Total Tickets" value={stats.total} icon="📦" color="#2563eb" />
               <StatCard label="Open Requests" value={stats.pending} icon="🕒" color="#f59e0b" />
               <StatCard label="Completed" value={stats.completed} icon="✅" color="#10b981" />
               <StatCard label="In Warranty" value={stats.underWarranty} icon="🛡️" color="#3b82f6" />
+              <StatCard label="Stale Tickets" value={staleTickets.length} icon="⏳" color="#ef4444" />
             </div>
             <div className={styles.chartsGrid}>
               <div className={styles.chartCard}>
@@ -309,6 +380,11 @@ const repairReturnData = useMemo(() => {
                 type="text" placeholder="Search by ID or Customer..." className={styles.searchInput}
                 value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               />
+              <select className={styles.filterSelect} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                <option value="All">All Types</option>
+                <option value="Repair">Repair</option>
+                <option value="Return">Return</option>
+              </select>
               <select className={styles.filterSelect} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="All">All Statuses</option>
                 <option value="Submitted">Submitted</option>
@@ -426,6 +502,56 @@ const repairReturnData = useMemo(() => {
                   </ResponsiveContainer>
                 </div>
               </div>
+              {/* TICKET TYPE DISTRIBUTION PIE CHART */}
+              <div className={styles.chartCard}>
+                <h3>Ticket Types (Product Categories)</h3>
+                <div className={styles.chartWrapper}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={ticketTypeData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {ticketTypeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={TYPE_COLORS[index % TYPE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend verticalAlign="bottom" height={36}/>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              {/* Γράφημα Escalated Tickets */}
+              <div className={styles.chartCard}>
+                <h3>Escalation Status</h3>
+                <div className={styles.chartWrapper}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={escalationData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={85}
+                        paddingAngle={8}
+                        dataKey="value"
+                      >
+                        {escalationData.map((entry, index) => (
+                          <Cell key={`cell-esc-${index}`} fill={ESCALATION_COLORS[index]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend verticalAlign="bottom" align="center" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -505,6 +631,8 @@ const repairReturnData = useMemo(() => {
                 <label className={styles.statLabel}>Email Template</label>
                 <textarea 
                   className={styles.textareaField} 
+                  rows="8"
+                  style={{ minWidth: '100%', maxWidth: '100%' }}
                   defaultValue={`Dear {customer_name},\n\nYour repair request {ticket_id} has been {status}.\n\n{details}\n\nThank you for choosing our service.`}
                 />
                 <div className={styles.variableContainer}>
@@ -681,6 +809,13 @@ const AdvancedTicketTable = ({ data, navigate }) => (
       <tbody>
         {data.map((t) => (
           <tr key={t._id}>
+            <td>
+            {t.ticketId}
+            {/* Show a red dot if the ticket is stale */}
+            {getStaleTickets([t]).length > 0 && (
+              <span title="Overdue" style={{ color: 'red', marginLeft: '5px' }}>●</span>
+            )}
+          </td>
             <td style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>
               #{t.ticketId || t._id.substring(t._id.length - 8).toUpperCase()}
             </td>
