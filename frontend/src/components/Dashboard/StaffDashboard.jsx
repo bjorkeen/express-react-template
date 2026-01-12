@@ -154,28 +154,52 @@ const StaffDashboard = () => {
 
       {/* Stats Cards */}
       <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
+        <div
+          className={`${styles.statCard} ${
+            activeView === "all" ? styles.statCardActive : ""
+          }`}
+          onClick={() => setActiveView("all")}
+          role="button"
+          tabIndex={0}
+        >
           <div className={styles.statLabel}>Total Requests</div>
           <div className={styles.statValue}>{stats.total}</div>
         </div>
-        <div className={styles.statCard} style={{ borderColor: "#f59e0b" }}>
-          <div className={styles.statLabel} style={{ color: "#b45309" }}>
-            Active
-          </div>
+
+        <div
+          className={`${styles.statCard} ${
+            activeView === "active" ? styles.statCardActive : ""
+          }`}
+          onClick={() => setActiveView("active")}
+          role="button"
+          tabIndex={0}
+        >
+          <div className={styles.statLabel}>Active</div>
           <div className={styles.statValue}>{stats.active}</div>
         </div>
-        <div className={styles.statCard} style={{ borderColor: "#10b981" }}>
-          <div className={styles.statLabel} style={{ color: "#15803d" }}>
-            Completed
-          </div>
+
+        <div
+          className={`${styles.statCard} ${
+            activeView === "completed" ? styles.statCardActive : ""
+          }`}
+          onClick={() => setActiveView("completed")}
+          role="button"
+          tabIndex={0}
+        >
+          <div className={styles.statLabel}>Completed</div>
           <div className={styles.statValue}>{stats.completed}</div>
         </div>
+
         <div
+          className={`${styles.statCard} ${
+            activeView === "escalated" ? styles.statCardActive : ""
+          }`}
           onClick={() => setActiveView("escalated")}
-          className={styles.statCard}
+          role="button"
+          tabIndex={0}
         >
-          <div>Escalated</div>
-          <div>{stats.escalated}</div>
+          <div className={styles.statLabel}>Escalated</div>
+          <div className={styles.statValue}>{stats.escalated}</div>
         </div>
       </div>
 
