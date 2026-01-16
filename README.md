@@ -112,6 +112,10 @@ graph TB
 cd the-refund-awakens
 ```
 
+2. Download the two files: 
+* .env file to be added to the backend folder https://drive.google.com/file/d/1VpgRY32E7AduaYKf0RNnhR1sEgwMawAj/view?usp=drive_link 
+* .env file to be added just to the project folder https://drive.google.com/file/d/1ODlLpcDRSqzchQ2pjAfRI7SPCekK0OaA/view?usp=sharing 
+
 2. Start the application (Production Mode):
 
 ```bash
